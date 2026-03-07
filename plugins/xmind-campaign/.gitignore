@@ -1,0 +1,5 @@
+.claude/*.local.md
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
