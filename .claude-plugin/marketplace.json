@@ -1,20 +1,21 @@
 {
   "name": "personal-plugins",
-  "description": "Personal Claude Code plugins by cbrandborg",
   "owner": { "name": "cbrandborg" },
+  "metadata": {
+    "description": "Personal Claude Code plugins by cbrandborg"
+  },
   "plugins": [
     {
       "name": "xmind-campaign",
       "version": "0.1.0",
       "description": "Convert XMind mind maps into structured Obsidian vaults for DnD campaigns. Handles full pipeline: extraction, classification, scene generation, completeness auditing, and Canvas creation.",
       "author": {
-        "name": "cbrandborg",
-        "email": ""
+        "name": "cbrandborg"
       },
       "source": "./plugins/xmind-campaign",
       "category": "productivity",
       "commands": ["./commands/"],
-      "agents": ["./agents/"],
+      "agents": ["./agents/completeness-auditor.md", "./agents/content-classifier.md"],
       "hooks": "./hooks/hooks.json",
       "mcpServers": {},
       "lspServers": {},
