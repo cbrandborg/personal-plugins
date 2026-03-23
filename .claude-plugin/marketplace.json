@@ -20,6 +20,17 @@
       "mcpServers": {},
       "lspServers": {},
       "tags": ["dnd", "obsidian", "xmind", "campaign", "ttrpg", "canvas"]
+    },
+    {
+      "name": "voting-assistant",
+      "version": "0.1.0",
+      "description": "Algocratic voting decision-support pipeline for Danish elections. Combines quantitative party analysis with qualitative voter interview to produce personalized voting recommendations.",
+      "author": {
+        "name": "cbrandborg"
+      },
+      "source": "./plugins/voting-assistant",
+      "category": "analysis",
+      "tags": ["voting", "elections", "denmark", "politik", "algocratic"]
     }
   ]
 }
