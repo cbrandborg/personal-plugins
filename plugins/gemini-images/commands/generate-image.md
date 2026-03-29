@@ -1,5 +1,5 @@
 ---
-name: generate
+name: generate-image
 description: Generate an image using Gemini with automatic prompt refinement and optional style guide constraints.
 argument-hint: "[prompt description]"
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "Agent", "AskUserQuestion", "mcp__plugin_gemini-images_gemini-images__generate_image", "mcp__plugin_gemini-images_gemini-images__get_generation_stats"]

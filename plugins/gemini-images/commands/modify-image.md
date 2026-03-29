@@ -1,5 +1,5 @@
 ---
-name: modify
+name: modify-image
 description: Modify an existing image using Gemini. Requires an image path and modification instructions.
 argument-hint: "[path to image]"
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "mcp__plugin_gemini-images_gemini-images__modify_image", "mcp__plugin_gemini-images_gemini-images__get_generation_stats"]

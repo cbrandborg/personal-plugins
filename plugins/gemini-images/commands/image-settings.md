@@ -1,5 +1,5 @@
 ---
-name: settings
+name: image-settings
 description: Configure gemini-images plugin defaults — model, output directory, style guide, cost limits.
 allowed-tools: ["Read", "Write", "AskUserQuestion", "Glob"]
 ---

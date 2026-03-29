@@ -29,7 +29,7 @@ fi
 # Check limit
 if [[ $CURRENT -ge $MAX_GENERATIONS ]]; then
   cat <<EOF
-{"decision":"block","reason":"Generation limit reached (${CURRENT}/${MAX_GENERATIONS}). Run /gemini-images:settings to increase max_generations, or start a new session to reset the counter."}
+{"decision":"block","reason":"Generation limit reached (${CURRENT}/${MAX_GENERATIONS}). Run /image-settings to increase max_generations, or start a new session to reset the counter."}
 EOF
   exit 0
 fi
