@@ -4,7 +4,7 @@
       "command": "uv",
       "args": [
         "run",
-        "--project",
+        "--directory",
         "${CLAUDE_PLUGIN_ROOT}",
         "python",
         "${CLAUDE_PLUGIN_ROOT}/server/gemini_server.py"
