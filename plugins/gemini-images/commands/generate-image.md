@@ -16,8 +16,8 @@ If the user provided a prompt in the command arguments, use it. Otherwise, ask w
 ## Step 2: Load settings
 
 Check if a `.claude/gemini-images.local.md` file exists in the current project directory. If it does, read it to get:
-- `default_model` (fallback: `gemini-2.5-flash-image`)
-- `output_dir` (fallback: `./generated-images`)
+- `default_model` (fallback: `gemini-3.1-flash-image-preview`)
+- `output_dir` (fallback: `./gemini-assets/outputs`)
 - `style_guide_path` (optional)
 - `auto_refine_prompts` (fallback: `true`)
 

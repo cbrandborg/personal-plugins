@@ -16,8 +16,8 @@ Check if `.claude/gemini-images.local.md` exists in the current project. If it d
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `default_model` | `gemini-2.5-flash-image` | Model for generation ($0.039/img) |
-| `output_dir` | `./generated-images` | Where to save images |
+| `default_model` | `gemini-3.1-flash-image-preview` | Model for generation (~$0.10/img) |
+| `output_dir` | `./gemini-assets/outputs` | Where to save images |
 | `style_guide_path` | (none) | Path to brand/visual identity guide |
 | `max_generations` | `5` | Cost control — max generations per session |
 | `auto_refine_prompts` | `true` | Auto-apply prompt best practices |
@@ -37,8 +37,8 @@ Write the settings to `.claude/gemini-images.local.md` with YAML frontmatter:
 
 ```markdown
 ---
-default_model: gemini-2.5-flash-image
-output_dir: ./generated-images
+default_model: gemini-3.1-flash-image-preview
+output_dir: ./gemini-assets/outputs
 style_guide_path: ~/Documents/vanirlabs/visual-identity/README.md
 max_generations: 5
 auto_refine_prompts: true
