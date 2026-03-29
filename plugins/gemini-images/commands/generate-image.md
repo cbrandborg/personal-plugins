@@ -13,9 +13,9 @@ You are generating an image using the Gemini image generation API. Follow these 
 
 If the user provided a prompt in the command arguments, use it. Otherwise, ask what they want to generate.
 
-Check if the user has provided or mentioned any reference images (style references, mood boards, existing assets). If so, note their paths — they can be passed to the `generate_image` tool. Reference images are also expected to live in `gemini-assets/inputs/` if the user has set them up.
+Check if the user has provided or mentioned any reference images (style references, mood boards, existing assets). If so, note their absolute paths — they can be passed to the `generate_image` tool via `reference_image_path`. Reference images are expected to live in `gemini-assets/inputs/` relative to the current project directory (e.g. `/Users/priv/Documents/code/vanirlabs/gemini-assets/inputs/`).
 
-If the user mentions wanting to match an existing style, color palette, or composition from an image, ask them for the path or check `gemini-assets/inputs/`.
+If the user mentions wanting to match an existing style, color palette, or composition from an image, ask them for the path or check `gemini-assets/inputs/` in the current working directory. Always pass absolute paths to the MCP tools.
 
 ## Step 2: Load settings
 
@@ -53,9 +53,10 @@ Show the refined prompt to the user and ask for confirmation before proceeding.
 
 Call the `generate_image` MCP tool with:
 - `prompt`: the refined prompt
+- `name`: a short 3-5 word descriptive name for the image (e.g. "cozy cabin sunset")
 - `model`: from settings or default
 - `aspect_ratio`: ask the user or default to "1:1"
-- `output_dir`: from settings or default
+- `output_dir`: **IMPORTANT** — always pass an absolute path. Resolve the `output_dir` from settings (or default `gemini-assets/outputs`) relative to the current project/working directory. For example, if you're in `/Users/priv/Documents/code/vanirlabs`, pass `/Users/priv/Documents/code/vanirlabs/gemini-assets/outputs`. Never pass a relative path — the MCP server runs from the plugin cache, not the user's project.
 
 ## Step 6: Present the result
 

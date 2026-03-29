@@ -48,10 +48,10 @@ Show the refined instruction to the user for confirmation.
 ## Step 6: Modify
 
 Call the `modify_image` MCP tool with:
-- `image_path`: the source image
+- `image_path`: absolute path to the source image
 - `instruction`: the refined instruction
 - `model`: from settings or default
-- `output_dir`: from settings or default
+- `output_dir`: **IMPORTANT** — always pass an absolute path. Resolve the `output_dir` from settings (or default `gemini-assets/outputs`) relative to the current project/working directory. Never pass a relative path — the MCP server runs from the plugin cache, not the user's project.
 
 ## Step 7: Present the result
 
