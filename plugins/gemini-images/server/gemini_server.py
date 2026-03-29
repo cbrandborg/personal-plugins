@@ -25,12 +25,21 @@ _session_stats = {
     "last_model": None,
 }
 
-# Approximate per-image cost by model
-_MODEL_COST = {
+# Supported models and approximate per-image cost
+_SUPPORTED_MODELS = {
     "gemini-2.5-flash-image": 0.039,
     "gemini-3.1-flash-image-preview": 0.10,
     "gemini-3-pro-image-preview": 0.19,
 }
+
+
+def _validate_model(model: str) -> str | None:
+    """Return an error JSON string if the model is not supported, else None."""
+    if model not in _SUPPORTED_MODELS:
+        return json.dumps({
+            "error": f"Unknown model: {model}. Supported models: {', '.join(_SUPPORTED_MODELS)}",
+        })
+    return None
 
 # 1Password secret reference for the API key.
 # Override with OP_GEMINI_API_KEY_REF env var if your vault/item differs.
@@ -202,7 +211,7 @@ def _save_images(
                 filename = _build_filename(slug, var, None, ext)
 
             filepath = out / filename
-            filepath.write_bytes(base64.b64decode(part.inline_data.data))
+            filepath.write_bytes(part.inline_data.data)
             saved.append(str(filepath))
 
     return saved
@@ -212,7 +221,7 @@ def _track(model: str, count: int = 1) -> None:
     """Update session stats after a generation."""
     _session_stats["generation_count"] += count
     _session_stats["last_model"] = model
-    cost = _MODEL_COST.get(model, 0.05) * count
+    cost = _SUPPORTED_MODELS.get(model, 0.05) * count
     _session_stats["cost_estimate"] = round(
         _session_stats["cost_estimate"] + cost, 3
     )
@@ -243,6 +252,8 @@ def generate_image(
         JSON with file paths, model used, and prompt.
     """
     try:
+        if err := _validate_model(model):
+            return err
         client = _client()
 
         contents: list = []
@@ -320,6 +331,8 @@ def modify_image(
         JSON with output file path and details.
     """
     try:
+        if err := _validate_model(model):
+            return err
         src = Path(image_path).expanduser().resolve()
         if not src.exists():
             return json.dumps({"error": f"Image not found: {src}"})
@@ -415,6 +428,8 @@ def generate_variations(
         JSON with all file paths and details.
     """
     try:
+        if err := _validate_model(model):
+            return err
         count = max(1, min(4, count))
         client = _client()
         all_saved = []
