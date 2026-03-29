@@ -279,6 +279,7 @@ def generate_image(
                 response_modalities=["TEXT", "IMAGE"],
                 image_config=types.ImageConfig(
                     aspect_ratio=aspect_ratio,
+                    output_mime_type="image/png",
                 ),
             ),
         )
@@ -369,6 +370,9 @@ def modify_image(
             ],
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
+                image_config=types.ImageConfig(
+                    output_mime_type="image/png",
+                ),
             ),
         )
 
@@ -461,6 +465,7 @@ def generate_variations(
                     response_modalities=["TEXT", "IMAGE"],
                     image_config=types.ImageConfig(
                         aspect_ratio=aspect_ratio,
+                        output_mime_type="image/png",
                     ),
                 ),
             )
