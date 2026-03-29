@@ -224,6 +224,7 @@ def generate_image(
     name: str,
     model: str = "gemini-3.1-flash-image-preview",
     aspect_ratio: str = "1:1",
+    reference_image_path: str | None = None,
     output_dir: str = _DEFAULT_OUTPUT_DIR,
 ) -> str:
     """Generate an image from a text prompt using Gemini.
@@ -235,6 +236,7 @@ def generate_image(
         model: Gemini model to use. Options: gemini-2.5-flash-image,
                gemini-3.1-flash-image-preview, gemini-3-pro-image-preview.
         aspect_ratio: Image aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3).
+        reference_image_path: Optional path to a reference image for style/composition guidance.
         output_dir: Directory to save the generated image.
 
     Returns:
@@ -242,9 +244,26 @@ def generate_image(
     """
     try:
         client = _client()
+
+        contents: list = []
+        if reference_image_path:
+            ref = Path(reference_image_path).expanduser().resolve()
+            if not ref.exists():
+                return json.dumps({"error": f"Reference image not found: {ref}"})
+            suffix = ref.suffix.lower()
+            mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+            mime_type = mime_map.get(suffix, "image/png")
+            image_data = base64.b64encode(ref.read_bytes()).decode("utf-8")
+            contents.append(
+                types.Part(
+                    inline_data=types.Blob(mime_type=mime_type, data=image_data)
+                )
+            )
+        contents.append(types.Part(text=prompt))
+
         response = client.models.generate_content(
             model=model,
-            contents=prompt,
+            contents=contents,
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
                 image_generation_config=types.ImageGenerationConfig(

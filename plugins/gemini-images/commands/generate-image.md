@@ -9,9 +9,13 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "Agent", "AskUserQuesti
 
 You are generating an image using the Gemini image generation API. Follow these steps carefully.
 
-## Step 1: Gather the prompt
+## Step 1: Gather the prompt and reference images
 
 If the user provided a prompt in the command arguments, use it. Otherwise, ask what they want to generate.
+
+Check if the user has provided or mentioned any reference images (style references, mood boards, existing assets). If so, note their paths — they can be passed to the `generate_image` tool. Reference images are also expected to live in `gemini-assets/inputs/` if the user has set them up.
+
+If the user mentions wanting to match an existing style, color palette, or composition from an image, ask them for the path or check `gemini-assets/inputs/`.
 
 ## Step 2: Load settings
 
