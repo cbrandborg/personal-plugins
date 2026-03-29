@@ -1,0 +1,17 @@
+{
+  "description": "Cost control for Gemini image generation",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__plugin_gemini-images_gemini-images__generate_image|mcp__plugin_gemini-images_gemini-images__modify_image|mcp__plugin_gemini-images_gemini-images__generate_variations",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}

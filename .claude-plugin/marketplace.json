@@ -31,6 +31,21 @@
       "source": "./plugins/voting-assistant",
       "category": "analysis",
       "tags": ["voting", "elections", "denmark", "politik", "algocratic"]
+    },
+    {
+      "name": "gemini-images",
+      "version": "0.1.0",
+      "description": "Generate and modify images using Google Gemini's image generation API. Includes prompt refinement, style guide support, iterative workflows, and cost controls.",
+      "author": {
+        "name": "cbrandborg"
+      },
+      "source": "./plugins/gemini-images",
+      "category": "creative",
+      "commands": ["./commands/"],
+      "agents": ["./agents/iteration-agent.md", "./agents/variation-agent.md"],
+      "hooks": "./hooks/hooks.json",
+      "mcpServers": "./.mcp.json",
+      "tags": ["image-generation", "gemini", "google", "ai-images", "design"]
     }
   ]
 }
