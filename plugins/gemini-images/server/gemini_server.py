@@ -1,12 +1,15 @@
 """MCP server for generating and modifying images via Google Gemini."""
 
 import base64
+import io
 import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+from PIL import Image as PIL_Image
 
 from google import genai
 from google.genai import types
@@ -207,8 +210,8 @@ def _save_images(
                 filename = _build_filename(slug, var, None, "png")
 
             filepath = out / filename
-            image = part.as_image()
-            image.save(str(filepath), format="PNG")
+            pil_image = PIL_Image.open(io.BytesIO(part.inline_data.data))
+            pil_image.save(str(filepath), format="PNG")
             saved.append(str(filepath))
 
     return saved
