@@ -197,21 +197,18 @@ def _save_images(
     slug = _slugify(name)
     saved = []
 
-    for _i, part in enumerate(response.candidates[0].content.parts):
+    for part in response.candidates[0].content.parts:
         if part.inline_data and part.inline_data.mime_type.startswith("image/"):
-            ext = part.inline_data.mime_type.split("/")[-1]
-            if ext == "jpeg":
-                ext = "jpg"
-
             if variation and is_iteration:
                 seq = _next_sequence(out, slug, variation)
-                filename = _build_filename(slug, variation, seq, ext)
+                filename = _build_filename(slug, variation, seq, "png")
             else:
                 var = variation or _next_variation(out, slug)
-                filename = _build_filename(slug, var, None, ext)
+                filename = _build_filename(slug, var, None, "png")
 
             filepath = out / filename
-            filepath.write_bytes(part.inline_data.data)
+            image = part.as_image()
+            image.save(str(filepath), format="PNG")
             saved.append(str(filepath))
 
     return saved
@@ -279,9 +276,6 @@ def generate_image(
                 response_modalities=["TEXT", "IMAGE"],
                 image_config=types.ImageConfig(
                     aspect_ratio=aspect_ratio,
-                    image_output_options=types.ImageConfigImageOutputOptions(
-                        mime_type="image/png",
-                    ),
                 ),
             ),
         )
@@ -372,11 +366,6 @@ def modify_image(
             ],
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
-                image_config=types.ImageConfig(
-                    image_output_options=types.ImageConfigImageOutputOptions(
-                        mime_type="image/png",
-                    ),
-                ),
             ),
         )
 
@@ -469,9 +458,6 @@ def generate_variations(
                     response_modalities=["TEXT", "IMAGE"],
                     image_config=types.ImageConfig(
                         aspect_ratio=aspect_ratio,
-                        image_output_options=types.ImageConfigImageOutputOptions(
-                        mime_type="image/png",
-                    ),
                     ),
                 ),
             )

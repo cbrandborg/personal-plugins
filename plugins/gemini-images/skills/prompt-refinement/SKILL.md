@@ -58,13 +58,24 @@ Instead of saying what to avoid, describe what you want:
 | Product shot | 4:3 |
 | Story / reel | 9:16 |
 
+## Transparency / Transparent Backgrounds
+
+Gemini's generateContent API always returns JPEG — it cannot produce true alpha transparency. When the user asks for a transparent background, a cutout, a sprite, or an isolated element:
+
+1. **Add a chroma-key background to the prompt**: Ask Gemini to render the subject on a solid, bright chroma-key background — either `bright magenta (#FF00FF)` or `bright green (#00FF00)`, whichever contrasts best with the subject's colors.
+2. **Be explicit in the prompt**: e.g. "...on a solid bright magenta (#FF00FF) background with no gradients, shadows, or other elements touching the background."
+3. **After generation**: The chroma-key background can be removed programmatically with Pillow or any image editor to produce a true transparent PNG.
+
+This is a workaround — tell the user that the background will need a quick removal step, either by you (if they ask) or manually.
+
 ## Process
 
 1. Read the user's raw prompt
 2. Identify the image type (photo, illustration, icon, text-heavy, etc.)
-3. Apply the relevant refinement rules above
-4. Preserve the user's creative intent — enhance specificity without changing direction
-5. If a style guide is active, incorporate its constraints (colors, typography, mood)
-6. Present the refined prompt for user approval before calling the API
+3. If the user wants transparency, apply the chroma-key approach above
+4. Apply the relevant refinement rules above
+5. Preserve the user's creative intent — enhance specificity without changing direction
+6. If a style guide is active, incorporate its constraints (colors, typography, mood)
+7. Present the refined prompt for user approval before calling the API
 
 For detailed examples and model comparisons, see `references/gemini-best-practices.md`.
