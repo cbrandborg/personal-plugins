@@ -8,3 +8,12 @@ dependencies = [
     "mcp>=1.0.0",
     "Pillow>=11.0",
 ]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that hit the real Gemini API (deselect with -m 'not integration')",
+]

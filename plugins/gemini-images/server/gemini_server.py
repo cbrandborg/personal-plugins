@@ -131,7 +131,7 @@ def _slugify(text: str) -> str:
     Example: 'Cozy Cabin Sunset' -> 'cozy-cabin-sunset'
     """
     slug = text.lower().strip()
-    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
+    slug = re.sub(r"[^a-z0-9\s_-]", "", slug)
     slug = re.sub(r"[\s_]+", "-", slug)
     slug = re.sub(r"-+", "-", slug).strip("-")
     return slug[:60] if slug else "image"
