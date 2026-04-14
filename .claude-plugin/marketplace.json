@@ -49,7 +49,7 @@
     },
     {
       "name": "dm-kit",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "D&D campaign authoring toolkit for Obsidian vaults: scaffolds scenes/chapters/characters with canvas sync, guidance for Danish/English read-aloud writing, structured brainstorming, and D&D 5e rules lookup (Open5e + dnd5eapi).",
       "author": {
         "name": "cbrandborg"

@@ -1,6 +1,6 @@
 ---
 name: scaffold-scene
-description: "Runs when the user says 'create a new scene', 'scaffold a scene', 'add a scene to chapter X', 'new scene for chapter Y', or '/dm-kit:scaffold-scene ...'. Creates a new scene markdown file in the correct chapter's Scenes/ folder AND adds a matching file node to the chapter's .canvas JSON in one atomic operation. Enforces the canvas+scene sync hard rule."
+description: "Runs when the user says 'create a new scene', 'scaffold a scene', 'add a scene', 'new scene in chapter', 'make a scene for', or '/dm-kit:scaffold-scene ...'. Creates a new scene markdown file in the correct chapter's Scenes/ folder AND adds a matching file node to the chapter's .canvas JSON in one atomic operation. Enforces the canvas+scene sync hard rule. Always uses the CWD-anchored vault path returned by detect-vault.sh — never swaps to a mirror root."
 argument-hint: "<chapter-number> <scene-title> [--type scene|encounter|puzzle] [--sub <parent-number>]"
 allowed-tools: [Read, Write, Edit, Glob, Bash]
 ---
@@ -8,6 +8,14 @@ allowed-tools: [Read, Write, Edit, Glob, Bash]
 # Scaffold Scene
 
 Create a new scene file AND its matching canvas node in one operation. This skill is the mandatory path for adding scenes — manual `Write` of a scene file without the canvas update violates the hard rule.
+
+## Path discipline (read this first)
+
+**All paths used in this skill must be anchored to the vault root returned by `detect-vault.sh` in step 1.** That script preserves the literal CWD path style. If the user has dual mirrors of the vault (e.g. Google Drive + Documents), `detect-vault.sh` returns the one matching the current CWD — use it verbatim.
+
+Never substitute a different absolute root, even if Claude Code offers additional working directories. Never resolve symlinks. Every Write, Edit, and Bash argument should start with the exact string `detect-vault.sh` returned.
+
+If your Write tool resolves the path differently than the vault root (e.g. Claude Code's path resolver picks a different mirror), abort and report the mismatch to the user — do not silently write to the wrong root.
 
 ## Arguments
 

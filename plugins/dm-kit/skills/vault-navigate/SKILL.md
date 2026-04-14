@@ -1,6 +1,6 @@
 ---
 name: vault-navigate
-description: "Loads when working inside any D&D campaign vault under the DnD/ parent directory. Use when the user asks anything about their campaign, wants to create/edit scene or character files, references 'this vault', 'this campaign', 'the chapter', or when other dm-kit skills are invoked. Teaches Claude how to detect the current vault, the folder structure, canvas conventions, and which files to read first."
+description: "**Auto-triggers on any question about campaign state, vault structure, or navigation inside a D&D vault.** Natural triggers include 'what vault am I in', 'which vault', 'which campaign', 'where am I', 'what campaign are we in', 'where are we', 'what project is this', 'show me the chapters', 'list characters', plus any mention of 'this vault', 'this campaign', 'the chapter', 'the scene folder'. Also loads as supporting context whenever another dm-kit skill runs (scaffold-*, write-*, brainstorm, dnd-lookup). Teaches Claude how to detect the current vault, folder structure, canvas conventions, and which files to read first. **Critical: preserve the CWD path style — never swap between Google Drive and Documents mirrors.**"
 ---
 
 # Vault Navigation
@@ -18,6 +18,16 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh
 It prints the absolute path of the nearest directory containing both `CLAUDE.md` and `Chapters/`, or exits 1 if not inside any vault.
 
 Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Plague of Myrkul*, *The Fractured Crown*, *The Bounty of Dunbar*, or any future campaign.
+
+### CRITICAL: preserve the CWD path style
+
+Some users have the same vault mounted at multiple absolute roots (e.g. Google Drive at `~/My Drive/sync/private-obsidian/DnD/...` AND locally at `~/Documents/private-obsidian/DnD/...`). These are DIFFERENT absolute paths that refer to the same files.
+
+**Always use the path that `detect-vault.sh` returns**, because it walks up from the literal `$PWD` without resolving symlinks. Never substitute a different absolute root even if you believe it's equivalent. All file Writes, Edits, and Reads must stay under that exact returned path.
+
+Why this matters: the `canvas-sync-hook` and Claude Code's own path validation compare absolute paths. A Write to the Documents mirror while CWD is the Drive mirror will look like a file outside the project root and may trigger false warnings or blocks.
+
+Rule of thumb: if `pwd` prints `~/My Drive/.../The Plague of Myrkul/Ideas`, every path you use must start with `~/My Drive/.../The Plague of Myrkul/`, not `~/Documents/.../The Plague of Myrkul/`. If Claude Code offers additional working directories, **ignore them** — always use the one matching `detect-vault.sh`'s output.
 
 ## Read these first
 

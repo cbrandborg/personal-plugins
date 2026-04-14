@@ -1,6 +1,6 @@
 ---
 name: dnd-lookup
-description: "Loads when the user asks about D&D 5e mechanics: a monster's stats, a spell's effect, a class feature, a condition, a skill check DC, rarity of a magic item, weapon properties, or any rules question. **ALSO loads autonomously** whenever Claude is designing an encounter, setting a skill check DC, writing a spell effect, or making a mechanical choice during scene/character authoring — in those cases, Claude should invoke this skill BEFORE committing to the number or effect. Queries Open5e and dnd5eapi.co."
+description: "**MUST be invoked for any D&D 5e mechanics question — creatures, spells, rules, DCs, CRs, conditions, classes, races, feats, magic items, character options — even in natural phrasings.** Auto-triggers on: 'what's the CR of [X]', 'how much HP does [Y] have', 'what does [spell] do', 'what's the DC for [W]', 'is this a [skill] check', 'what level is [spell]', 'what monster would fit', 'what's the AC/HP/attack of', 'what condition is', 'what does [class/race/feat] give', 'look up', 'check the rules on', 'how does [mechanic] work'. **Also invoke autonomously WITHOUT being asked** whenever designing an encounter, setting a skill check DC, writing a spell effect, or picking a monster — ground numbers BEFORE committing. **Do NOT answer 5e mechanics questions from training knowledge alone when this skill is available — always invoke it and report the grounded answer.** Uses Open5e and dnd5eapi.co."
 ---
 
 # D&D 5e Rules Lookup

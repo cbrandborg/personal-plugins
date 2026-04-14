@@ -5,8 +5,8 @@
         "matcher": "Write|Edit",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "A Write or Edit tool call just ran. If the target file path matches the pattern `Chapters/**/Scenes/*.md` (a scene file in a D&D campaign vault), run this check:\n\n1. Identify the chapter folder (walk up from the scene file to the `Chapters/<NN - Name>/` directory).\n2. Find the `.canvas` file in that chapter folder (use Glob for `*.canvas`).\n3. Grep the canvas file for the scene's filename (the basename of the scene file, e.g. `07_Gallows_Camp.md`).\n4. **If the scene is NOT referenced in the canvas**, emit a warning (not a block) to the user:\n\n   > ⚠️ Canvas sync warning: the scene file you just wrote/edited is not referenced in `<canvas-path>`. Run `scaffold-scene` to add it, or use `scripts/add-scene-to-canvas.py` manually. Obsidian will not show the scene in the chapter canvas until it's linked.\n\n5. If the scene IS referenced, or if the file path does not match `Chapters/**/Scenes/*.md`, do nothing. Do not emit a message.\n\nNever block the tool call. This is a warning only. The user may have intentionally created a scene file outside the canvas (e.g. a template or draft)."
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/canvas-sync-hook.sh"
           }
         ]
       }
