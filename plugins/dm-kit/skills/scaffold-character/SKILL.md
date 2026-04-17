@@ -1,6 +1,6 @@
 ---
 name: scaffold-character
-description: "Runs when the user says 'create a character', 'add an NPC', 'scaffold a PC', 'new character for the party', 'write up [name]', or '/dm-kit:scaffold-character ...'. Creates a character markdown file in Characters/ using the correct template for player characters (PC) or non-player characters (NPC). Supports faction, first-met chapter, major/minor tag, D&D Beyond link for PCs."
+description: "Runs when the user wants to create a new character file in the campaign vault. Trigger phrases include: 'create a character', 'create a new NPC', 'create a new NPC called', 'add an NPC', 'scaffold a PC', 'new character for the party', 'new player character', 'add a new PC', 'add a new PC to the party', 'write up [name]', 'create a character file', 'create a character file for', 'I need to create a character file', 'I need to create a character', 'start a character file', 'start a character file for', 'make a new character file', 'make a character file', 'create an NPC for', '/dm-kit:scaffold-character'. Also triggers for any request to scaffold, initialize, or write up a new character document in the Characters/ folder — whether it's a major villain, a minor NPC, or a new player character joining the party. Creates a character markdown file using the correct PC or NPC template."
 argument-hint: "<name> --type npc|pc [--chapter <NN>] [--faction ally|enemy|neutral|contested] [--major|--minor]"
 allowed-tools: [Read, Write, Glob, Bash]
 ---

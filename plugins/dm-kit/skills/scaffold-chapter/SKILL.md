@@ -1,6 +1,6 @@
 ---
 name: scaffold-chapter
-description: "Runs when the user says 'create a new chapter', 'scaffold chapter X', 'add chapter N', or '/dm-kit:scaffold-chapter ...'. Creates a new chapter folder with the correct name, initializes its .canvas file with a title node, creates a Scenes/ directory, and writes a starter '01 - Arrival' scene (which also gets a matching canvas node)."
+description: "Runs when the user wants to create a new chapter in the campaign vault. Trigger phrases include: 'create a new chapter', 'create a new chapter called', 'scaffold chapter', 'scaffold chapter X', 'add chapter', 'add a new chapter', 'add a new chapter to this vault', 'I need to start a new chapter', 'set up the folder and canvas for chapter', 'set up the folder for chapter', 'make a new chapter folder', 'make a new chapter folder with', 'I want a new chapter', 'new chapter container', 'set up a new chapter container', 'start chapter [N]', '/dm-kit:scaffold-chapter'. Also triggers for any request to initialize the folder structure, canvas file, and Scenes/ directory for a new chapter number — including vague phrasings like 'set up chapter 10' or 'get chapter 11 ready'. Creates the folder, .canvas file with a title node, Scenes/ directory, and a starter '01 - Arrival' scene."
 argument-hint: "<chapter-number> <chapter-name>"
 allowed-tools: [Read, Write, Edit, Glob, Bash]
 ---

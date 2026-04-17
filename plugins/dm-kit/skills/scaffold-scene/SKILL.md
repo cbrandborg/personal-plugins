@@ -1,6 +1,6 @@
 ---
 name: scaffold-scene
-description: "Runs when the user says 'create a new scene', 'scaffold a scene', 'add a scene', 'new scene in chapter', 'make a scene for', or '/dm-kit:scaffold-scene ...'. Creates a new scene markdown file in the correct chapter's Scenes/ folder AND adds a matching file node to the chapter's .canvas JSON in one atomic operation. Enforces the canvas+scene sync hard rule. Always uses the CWD-anchored vault path returned by detect-vault.sh — never swaps to a mirror root."
+description: "Runs when the user wants to create a new scene file inside a chapter. Trigger phrases include: 'create a new scene', 'create a new scene in chapter', 'scaffold a scene', 'scaffold a scene for chapter', 'add a scene', 'add a new scene', 'new scene in chapter', 'make a scene for', 'make me a new scene file', 'I need a new sub-scene', 'I want to add an encounter scene', 'I want to add a scene where', 'add an encounter scene', '/dm-kit:scaffold-scene'. Also triggers for any request to create a new scene file — whether it's a main scene, sub-scene (01a, 01b), encounter, puzzle, or dialogue scene — inside any numbered chapter folder. Creates the scene .md file AND updates the chapter's .canvas JSON in one atomic step. Always uses CWD-anchored vault path from detect-vault.sh."
 argument-hint: "<chapter-number> <scene-title> [--type scene|encounter|puzzle] [--sub <parent-number>]"
 allowed-tools: [Read, Write, Edit, Glob, Bash]
 ---

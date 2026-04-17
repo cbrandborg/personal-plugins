@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "Runs when the user says 'brainstorm', 'give me options for', 'I need ideas for', 'what could happen if', 'help me decide between', or asks for creative alternatives on a D&D campaign element (scene hook, encounter, NPC voice, plot twist, chapter opening, item effect, etc.). Enforces structured ideation: asks mode, generates 5-10 options with tradeoffs, forces ruthless cutting before committing."
+description: "Runs whenever the user wants a list of options to choose from, or is stuck on a decision about any D&D campaign element. Trigger phrases include: 'brainstorm', 'give me options', 'give me options for', 'I need options for', 'give me a bunch', 'give me a bunch of options', 'give me ideas', 'I need ideas', 'I need ideas for', 'I need ideas for what', 'what could happen if', 'what could [X] do', 'what are some ways', 'help me decide', 'help me decide between', 'give me alternatives', 'come up with X options', 'I want alternatives', 'I'm stuck on', 'give me X [options/ideas/versions/alternatives]', 'I'll pick from a list'. Also triggers for any request for a set of scene hooks, plot twists, NPC backstories, item mechanics, dialogue options, chapter openings, or encounter ideas where the user wants to pick from multiple possibilities before committing to one. Enforces structured ideation: generates 5-10 options with tradeoffs before committing."
 argument-hint: "[optional: topic to brainstorm]"
 allowed-tools: [Read, Glob, Grep, Bash]
 ---

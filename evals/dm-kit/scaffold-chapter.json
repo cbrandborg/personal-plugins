@@ -1,0 +1,18 @@
+[
+  {"query": "create a new chapter 10 called 'Decaying Monastery'", "should_trigger": true},
+  {"query": "scaffold chapter 11 for a new campaign arc, name it 'The Return Home'", "should_trigger": true},
+  {"query": "add a new chapter to this vault — chapter 12, call it 'Epilogue'", "should_trigger": true},
+  {"query": "I need to start a new chapter in The Fractured Crown campaign, chapter 5 'The Broken Tower'", "should_trigger": true},
+  {"query": "/dm-kit:scaffold-chapter 11 'The Decaying Monastery'", "should_trigger": true},
+  {"query": "set up the folder and canvas for chapter 10", "should_trigger": true},
+  {"query": "make a new chapter folder with a blank canvas and starter arrival scene", "should_trigger": true},
+  {"query": "I want a new chapter container for the finale arc", "should_trigger": true},
+  {"query": "what scenes does chapter 9 currently contain", "should_trigger": false},
+  {"query": "add a new scene to chapter 10 — the arrival scene", "should_trigger": false},
+  {"query": "write the opening read-aloud for chapter 10", "should_trigger": false},
+  {"query": "review chapter 9 for completeness", "should_trigger": false},
+  {"query": "brainstorm ideas for what should happen in chapter 10", "should_trigger": false},
+  {"query": "show me the chapter 10 folder", "should_trigger": false},
+  {"query": "rename chapter 10 — I want to call it something else", "should_trigger": false},
+  {"query": "what happens at the start of chapter 10 narratively? Just the lore", "should_trigger": false}
+]

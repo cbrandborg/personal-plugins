@@ -1,0 +1,18 @@
+[
+  {"query": "create a new NPC called Sir Halvar Bastion — he's a Scarred Templar, ally faction, first met in chapter 9", "should_trigger": true},
+  {"query": "scaffold a character file for the bandit leader in the Old Warehouse, chapter 3, enemy faction", "should_trigger": true},
+  {"query": "add a new PC to the party — Thorvald Ironjaw, dwarf barbarian, the player is Magnus", "should_trigger": true},
+  {"query": "I need to create a character file for Father Carrion's lieutenant, a contested NPC, major character", "should_trigger": true},
+  {"query": "/dm-kit:scaffold-character 'Brother Tobias' --type npc --chapter 06", "should_trigger": true},
+  {"query": "make a new character file in the Characters folder — Martha the healer, minor NPC, chapter 4", "should_trigger": true},
+  {"query": "add the new player character Lyria Nightwhisper, elf rogue, here's her D&D Beyond link https://ddb.ac/characters/xxx", "should_trigger": true},
+  {"query": "start a character file for a tavernkeeper NPC in chapter 2, he's a minor ally", "should_trigger": true},
+  {"query": "give Sir Halvar a more distinct voice — he needs a signature mannerism", "should_trigger": false},
+  {"query": "write Father Carrion's dialogue for the final confrontation", "should_trigger": false},
+  {"query": "what NPCs are in the Characters folder already", "should_trigger": false},
+  {"query": "review the Evie character file for completeness", "should_trigger": false},
+  {"query": "brainstorm 6 possible backstories for the Scarred Templar", "should_trigger": false},
+  {"query": "what's the CR of a Death Knight like Morgoth", "should_trigger": false},
+  {"query": "delete the test NPC file from yesterday", "should_trigger": false},
+  {"query": "edit Marshall Garrick's existing file — add that he's a Paladin now", "should_trigger": false}
+]

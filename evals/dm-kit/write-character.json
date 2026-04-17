@@ -1,0 +1,18 @@
+[
+  {"query": "give Father Carrion a distinct speaking voice — he's the main villain, calm, articulate, believes he's being merciful", "should_trigger": true},
+  {"query": "write dialogue for Marshall Garrick when he reveals he's a paladin at the end of the Justiciar ceremony", "should_trigger": true},
+  {"query": "what mannerisms should the Scarred Templar have? He needs to feel like a veteran haunted by the Bridge", "should_trigger": true},
+  {"query": "flesh out Brother Benedict's personality — he's an Ilmater priest, old, devout, quietly furious about what Valdric did", "should_trigger": true},
+  {"query": "how should Captain Elara sound in her dialogue? She's holding Durgan's Rest together by force of will", "should_trigger": true},
+  {"query": "help me find a signature phrase for the High Mayor Harland — he's a smooth politician but cracking under pressure", "should_trigger": true},
+  {"query": "I need a distinct voice for a bandit leader NPC — vulgar, Danish, he's the obstacle in chapter 3's Old Warehouse", "should_trigger": true},
+  {"query": "write a short NPC voice profile for a nervous merchant who witnessed the Millbrook burning", "should_trigger": true},
+  {"query": "create a new character file for Captain Elara in the Characters folder", "should_trigger": false},
+  {"query": "write the scene where Benedict arrives with the Raven Hill reinforcements", "should_trigger": false},
+  {"query": "what's the CR of a veteran NPC like the Scarred Templar", "should_trigger": false},
+  {"query": "brainstorm 5 alternative origins for Morgoth the Death Knight", "should_trigger": false},
+  {"query": "review the Father Carrion character file for convention issues", "should_trigger": false},
+  {"query": "what NPCs exist in the Characters folder already", "should_trigger": false},
+  {"query": "look up the standard stat block for a priest NPC in 5e", "should_trigger": false},
+  {"query": "set up a new chapter folder for chapter 10", "should_trigger": false}
+]

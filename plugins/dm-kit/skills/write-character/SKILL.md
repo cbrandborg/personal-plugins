@@ -1,6 +1,6 @@
 ---
 name: write-character
-description: "Loads when the user asks to 'write an NPC', 'give this character a voice', 'flesh out this character', 'write NPC dialogue', 'make this character memorable', 'what does [NPC] sound like', or is developing an NPC or PC backstory, personality, mannerisms, or speech patterns in a D&D campaign vault. Provides principles for NPC voice, dialogue, and functional typing, plus guidance on when stat blocks are needed."
+description: "Loads when the user is developing an NPC or PC's voice, personality, dialogue, or mannerisms in a D&D campaign vault. Trigger phrases include: 'write an NPC', 'give this character a voice', 'give [name] a distinct [voice/speaking voice]', 'flesh out this character', 'flesh out [name]'s personality', 'write NPC dialogue', 'write dialogue for [name]', 'make this character memorable', 'what does [NPC] sound like', 'how should [name] sound', 'how should [name] sound in dialogue', 'what mannerisms should [name] have', 'help me find a signature phrase', 'signature phrase for', 'write a voice profile', 'write a short NPC voice profile', 'NPC voice profile', 'develop [name]'s personality'. Also triggers when the user asks how a specific NPC should feel in dialogue, wants to find a recurring phrase or verbal tic, or needs help making an NPC feel distinctive and memorable in play. Provides principles for NPC voice, dialogue, and functional typing, plus guidance on when stat blocks are needed."
 ---
 
 # Writing Characters

@@ -1,0 +1,18 @@
+[
+  {"query": "What vault am I in right now?", "should_trigger": true},
+  {"query": "which campaign is this — is it the plague one or fractured crown?", "should_trigger": true},
+  {"query": "Where are we? I just opened a terminal in this obsidian folder and I'm not sure which campaign I've got open", "should_trigger": true},
+  {"query": "Show me the chapter folder for chapter 9 so I can see what scenes exist", "should_trigger": true},
+  {"query": "How is this D&D vault structured? I keep forgetting where the Characters folder lives vs Chapters/", "should_trigger": true},
+  {"query": "list all the NPC files in this campaign so I can pick one to revise", "should_trigger": true},
+  {"query": "quick sanity check — is the current state doc _Campaign Overview.md or Campaign_Summary_Updated.md? I always mix them up", "should_trigger": true},
+  {"query": "what conventions does this vault follow — like the Danish/English split rule, canvas sync, all that stuff?", "should_trigger": true},
+  {"query": "what directory is this terminal currently in", "should_trigger": false},
+  {"query": "list files in ~/Downloads", "should_trigger": false},
+  {"query": "show me git status on this repo", "should_trigger": false},
+  {"query": "what's in my ~/.bashrc", "should_trigger": false},
+  {"query": "how do I run `npm install` in a node project", "should_trigger": false},
+  {"query": "show me the structure of the xmind-campaign plugin — the old one I'm about to retire", "should_trigger": false},
+  {"query": "help me debug a Python import error in a django project in ~/code/webapp", "should_trigger": false},
+  {"query": "what's my current working directory for this bash session", "should_trigger": false}
+]
