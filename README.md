@@ -20,6 +20,7 @@ Personal Claude Code plugins by cbrandborg.
 |--------|-------------|----------|
 | `dm-kit` | D&D campaign authoring toolkit: scaffolds scenes/chapters/characters with canvas sync, writing guidance, structured brainstorming, and 5e rules lookup | productivity |
 | `xmind-campaign` | Convert XMind mind maps into structured Obsidian vaults for DnD campaigns (legacy — superseded by dm-kit for new authoring work) | productivity |
+| `env-guard` | PreToolUse hook that blocks Claude Code from reading, writing, or editing `.env` files (templates like `.env.example` are allowed; extra suffixes configurable) | security |
 
 ## Adding a plugin
 
