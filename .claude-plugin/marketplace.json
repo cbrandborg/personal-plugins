@@ -59,6 +59,18 @@
       "agents": ["./agents/scene-reviewer.md"],
       "hooks": "./hooks/hooks.json",
       "tags": ["dnd", "dnd5e", "obsidian", "canvas", "authoring", "ttrpg", "dm", "campaign"]
+    },
+    {
+      "name": "env-guard",
+      "version": "0.1.0",
+      "description": "PreToolUse hook that blocks Claude Code from reading, writing, or editing .env files (with .env.example/.sample/.template/.dist allowed by default, more configurable via env var). Tokenizes commands, expands globs, and inspects nested shells.",
+      "author": {
+        "name": "cbrandborg"
+      },
+      "source": "./plugins/env-guard",
+      "category": "security",
+      "hooks": "./hooks/hooks.json",
+      "tags": ["security", "secrets", "env", "hooks", "safety"]
     }
   ]
 }
