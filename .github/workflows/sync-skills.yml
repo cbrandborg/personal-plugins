@@ -21,11 +21,11 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Sync registered upstream skills and bump changed plugin versions
-        run: python3 scripts/skills.py sync --apply
+        run: python3.13 scripts/skills.py sync --apply
       - name: Validate generated marketplace state
-        run: python3 scripts/skills.py validate
+        run: python3.13 scripts/skills.py validate
       - name: Commit and push updated skills
         run: |
           if git diff --quiet; then

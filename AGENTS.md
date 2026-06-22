@@ -47,9 +47,10 @@ just sync-skills --apply
 just validate
 ```
 
-The scheduled GitHub Action runs the same sync operation weekly. It bumps a
-plugin's patch version and both manifests only when the vendored skill content
-actually changes, then commits the reviewed-by-CI result to `main`.
+The scheduled GitHub Action runs the same sync operation weekly. It compares
+each tracked skill separately, replaces only changed skill folders, and bumps a
+plugin's patch version once only when one or more of its skills actually
+changed; it then commits the reviewed-by-CI result to `main`.
 
 ## Validation
 

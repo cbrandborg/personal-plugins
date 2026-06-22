@@ -46,8 +46,9 @@ provider/category bundle when that better matches how its upstream is released.
 ## Managed imports
 
 `sources.json` declares imported Git sources. `sources.lock.json` records the
-exact commit currently shipped. Imported files are vendored into the plugin, so
-a Git commit in this repository is self-contained and reviewable.
+exact commit and source path for each skill currently shipped. Imported files
+are vendored into the plugin, so a Git commit in this repository is
+self-contained and reviewable.
 
 Add a collection from a repository:
 
@@ -74,13 +75,17 @@ Check and apply updates:
 ```bash
 just sync-skills --check
 just sync-skills --apply
+PYTHON=python3.13 just validate
 just ci
 ```
 
-An applied update replaces only the bundle's vendored `skills/` content, writes
-the resolved commit to `sources.lock.json`, adds a changelog entry, and bumps
-the patch version in **both** plugin manifests. The marketplace files do not
-duplicate plugin versions; the manifests are the single version source.
+An applied update compares every tracked skill directory independently. It
+replaces **only** a skill whose normalized content differs upstream; it neither
+touches sibling skills nor bumps a version when a source commit has no skill
+content change. If one or more skills in the same bundle changed, the bundle is
+bumped exactly once and its changelog names every changed skill. The marketplace
+files do not duplicate plugin versions; the manifests are the single version
+source.
 
 ## Automated weekly sync
 

@@ -1,11 +1,47 @@
 {
   "sources": [
     {
-      "id": "mattpocock-productivity",
+      "id": "mattpocock-productivity-grill-me",
       "plugin": "mattpocock-productivity",
       "git": "https://github.com/mattpocock/skills.git",
       "ref": "main",
-      "path": "skills/productivity",
+      "path": "skills/productivity/grill-me",
+      "category": "Productivity",
+      "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
+    },
+    {
+      "id": "mattpocock-productivity-grilling",
+      "plugin": "mattpocock-productivity",
+      "git": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "path": "skills/productivity/grilling",
+      "category": "Productivity",
+      "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
+    },
+    {
+      "id": "mattpocock-productivity-handoff",
+      "plugin": "mattpocock-productivity",
+      "git": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "path": "skills/productivity/handoff",
+      "category": "Productivity",
+      "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
+    },
+    {
+      "id": "mattpocock-productivity-teach",
+      "plugin": "mattpocock-productivity",
+      "git": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "path": "skills/productivity/teach",
+      "category": "Productivity",
+      "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
+    },
+    {
+      "id": "mattpocock-productivity-writing-great-skills",
+      "plugin": "mattpocock-productivity",
+      "git": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "path": "skills/productivity/writing-great-skills",
       "category": "Productivity",
       "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
     }

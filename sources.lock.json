@@ -1,8 +1,54 @@
 {
   "sources": {
-    "mattpocock-productivity": {
-      "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
-      "synced_at": "2026-06-22T11:01:18+00:00"
+    "mattpocock-productivity-grill-me": {
+      "skills": {
+        "grill-me": {
+          "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+          "source_path": "skills/productivity/grill-me",
+          "content_sha256": "b84d74fce1bb376fe22a424665d4e3f104db800cceb74a61ea287aae8e3d16b6",
+          "synced_at": "2026-06-22T11:01:18+00:00"
+        }
+      }
+    },
+    "mattpocock-productivity-grilling": {
+      "skills": {
+        "grilling": {
+          "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+          "source_path": "skills/productivity/grilling",
+          "content_sha256": "5c720ab336c06e775e950b271a09cd1f79fe7210c947ce9ea7013ed9cf9c11c7",
+          "synced_at": "2026-06-22T11:01:18+00:00"
+        }
+      }
+    },
+    "mattpocock-productivity-handoff": {
+      "skills": {
+        "handoff": {
+          "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+          "source_path": "skills/productivity/handoff",
+          "content_sha256": "478ba7f43732eb37517839d1360c630bc645a1eac6f39737cb3fb38d22a1194b",
+          "synced_at": "2026-06-22T11:01:18+00:00"
+        }
+      }
+    },
+    "mattpocock-productivity-teach": {
+      "skills": {
+        "teach": {
+          "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+          "source_path": "skills/productivity/teach",
+          "content_sha256": "b5dcbf2741010d122da44c6970519ef7539fcc8ba0acff2f535b585f3ff91b94",
+          "synced_at": "2026-06-22T11:01:18+00:00"
+        }
+      }
+    },
+    "mattpocock-productivity-writing-great-skills": {
+      "skills": {
+        "writing-great-skills": {
+          "commit": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+          "source_path": "skills/productivity/writing-great-skills",
+          "content_sha256": "41a6fe3a41093a494b7713faa63d61b0b1178b8730695f549410dc1045aee66f",
+          "synced_at": "2026-06-22T11:01:18+00:00"
+        }
+      }
     }
   }
 }

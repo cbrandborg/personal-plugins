@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import hashlib
 import json
 import re
 import shutil
@@ -190,17 +191,46 @@ def tree_equal(left: Path, right: Path) -> bool:
     return all(tree_equal(left / child, right / child) for child in comparison.common_dirs)
 
 
-def prepare_payload(upstream: Path, staging_root: Path, source: dict) -> Path:
-    """Normalize a source path into a plugin's `skills/<skill-name>/` payload."""
-    payload = staging_root / "payload"
-    payload.mkdir()
+def tree_digest(path: Path) -> str:
+    """Return a stable content hash for a skill directory."""
+    digest = hashlib.sha256()
+    for child in sorted(item for item in path.rglob("*") if item.is_file()):
+        relative = child.relative_to(path).as_posix().encode("utf-8")
+        digest.update(relative + b"\0")
+        digest.update(child.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def find_skills(upstream: Path) -> list[tuple[str, Path, str]]:
+    """Return every individual skill managed by one source declaration.
+
+    A direct source path identifies one skill. A collection path is expanded
+    into leaf skills, so later syncs compare and update every leaf separately.
+    """
     if (upstream / "SKILL.md").is_file():
-        # A source pointing at one skill needs one extra directory level inside
-        # a plugin.  This is what makes direct skills.sh page imports portable
-        # across both plugin systems.
-        shutil.copytree(upstream, payload / Path(source["path"]).name)
-    else:
-        shutil.copytree(upstream, payload, dirs_exist_ok=True)
+        return [(upstream.name, upstream, ".")]
+
+    skills = [
+        (skill.parent.name, skill.parent, skill.parent.relative_to(upstream).as_posix())
+        for skill in sorted(upstream.rglob("SKILL.md"))
+    ]
+    if not skills:
+        raise ValueError("source path contains no SKILL.md files")
+    names = [name for name, _, _ in skills]
+    duplicate_names = sorted({name for name in names if names.count(name) > 1})
+    if duplicate_names:
+        raise ValueError(
+            "a bundled plugin cannot contain duplicate skill directory names: "
+            + ", ".join(duplicate_names)
+        )
+    return skills
+
+
+def prepare_skill_payload(upstream_skill: Path, staging_root: Path) -> Path:
+    """Copy and normalize one individual skill for a portable plugin payload."""
+    payload = staging_root / "payload"
+    shutil.copytree(upstream_skill, payload)
     # `disable-model-invocation` is a Claude Code extension. Removing it makes
     # the vendored SKILL.md use the portable Agent Skills subset understood by
     # both marketplace targets. The upstream URL and resolved commit remain
@@ -228,7 +258,7 @@ def bump_patch(version: str) -> str:
     return f"{match.group(1)}.{match.group(2)}.{int(match.group(3)) + 1}"
 
 
-def bump_plugin(plugin: str, source_id: str, commit: str) -> str:
+def bump_plugin(plugin: str, updates: list[dict]) -> str:
     manifest_paths = [
         PLUGINS / plugin / ".claude-plugin" / "plugin.json",
         PLUGINS / plugin / ".codex-plugin" / "plugin.json",
@@ -242,51 +272,121 @@ def bump_plugin(plugin: str, source_id: str, commit: str) -> str:
         manifest["version"] = version
         write_json(path, manifest)
     changelog = PLUGINS / plugin / "CHANGELOG.md"
-    entry = (
-        f"## {version} - {datetime.now(timezone.utc).date().isoformat()}\n\n"
-        f"- Synced `{source_id}` at `{commit}`.\n\n"
+    lines = [f"## {version} - {datetime.now(timezone.utc).date().isoformat()}", ""]
+    lines.extend(
+        f"- Synced `{update['source_id']}/{update['skill']}` at `{update['commit']}`."
+        for update in updates
     )
+    entry = "\n".join(lines) + "\n\n"
     old = changelog.read_text(encoding="utf-8") if changelog.exists() else ""
     changelog.write_text(entry + old, encoding="utf-8")
     return version
 
 
-def sync_source(source: dict, apply: bool) -> bool:
+def sync_source(source: dict, apply: bool) -> list[dict]:
+    """Compare and optionally replace only changed individual skill directories."""
     plugin = source["plugin"]
     plugin_dir = PLUGINS / plugin
-    target = plugin_dir / "skills"
-    initial_import = not target.exists() or not any(target.iterdir())
+    skills_root = plugin_dir / "skills"
+    initial_import = not skills_root.exists() or not any(skills_root.iterdir())
+    updates: list[dict] = []
+    lock = load_json(LOCK)
+    source_lock = lock.setdefault("sources", {}).get(source["id"], {})
+    locked_skills = source_lock.get("skills", {})
     with tempfile.TemporaryDirectory(prefix="personal-plugins-") as dirname:
         temporary = Path(dirname)
         upstream, commit = clone_source(source, temporary)
-        payload = prepare_payload(upstream, temporary, source)
-        changed = not tree_equal(payload, target)
-        status = "changed" if changed else "up to date"
-        print(f"{source['id']}: {status} ({commit[:12]})")
-        if not changed or not apply:
-            return changed
-        if target.exists():
-            shutil.rmtree(target)
-        shutil.copytree(payload, target)
-        if initial_import:
-            version = load_json(plugin_dir / ".claude-plugin" / "plugin.json")["version"]
-            changelog = plugin_dir / "CHANGELOG.md"
-            changelog.write_text(
-                f"## {version} - {datetime.now(timezone.utc).date().isoformat()}\n\n"
-                f"- Initial import of `{source['id']}` at `{commit}`.\n\n",
-                encoding="utf-8",
-            )
-        else:
-            version = bump_plugin(plugin, source["id"], commit)
-        lock = load_json(LOCK)
-        lock["sources"][source["id"]] = {
-            "commit": commit,
-            "synced_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-        }
+        for index, (skill_name, upstream_skill, relative_path) in enumerate(find_skills(upstream)):
+            payload = prepare_skill_payload(upstream_skill, temporary / f"skill-{index}")
+            target = skills_root / skill_name
+            upstream_digest = tree_digest(payload)
+            target_digest = tree_digest(target) if target.exists() else None
+            locked = locked_skills.get(skill_name, {})
+            locked_digest = locked.get("content_sha256")
+            locked_commit = locked.get("commit")
+
+            # Legacy locks without a content digest are treated conservatively:
+            # an identical local skill is already current, while a divergent
+            # local skill is preserved unless a newer upstream commit proves a
+            # genuine update may exist.
+            if locked_digest is None and target_digest == upstream_digest:
+                print(f"{source['id']}/{skill_name}: up to date ({commit[:12]})")
+                continue
+            if locked_digest is None and locked_commit == commit:
+                print(f"{source['id']}/{skill_name}: local changes preserved ({commit[:12]})")
+                continue
+
+            # A source commit can move without changing this skill. In that
+            # case there is nothing to write or release, even if a user has
+            # changed their local vendored copy.
+            upstream_changed = (
+                locked_digest is None and locked_commit != commit
+            ) or (locked_digest is not None and locked_digest != upstream_digest)
+            if not upstream_changed:
+                status = "up to date" if target_digest == upstream_digest else "local changes preserved"
+                print(f"{source['id']}/{skill_name}: {status} ({commit[:12]})")
+                continue
+
+            # Never silently overwrite a locally modified vendored skill when
+            # upstream also has a real update. CI runs from a clean checkout;
+            # this protection is for local use.
+            if locked_digest is not None and target_digest not in {None, locked_digest}:
+                message = f"{source['id']}/{skill_name}: upstream and local content both changed"
+                print(f"{message}; refusing to overwrite")
+                if apply:
+                    raise ValueError(message)
+                continue
+
+            print(f"{source['id']}/{skill_name}: changed ({commit[:12]})")
+            update = {
+                "source_id": source["id"],
+                "plugin": plugin,
+                "skill": skill_name,
+                "source_path": source["path"] if relative_path == "." else f"{source['path'].rstrip('/')}/{relative_path}",
+                "commit": commit,
+                "content_sha256": upstream_digest,
+                "initial": initial_import,
+            }
+            updates.append(update)
+            if not apply:
+                continue
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(payload, target)
+
+    if apply and updates:
+        source_lock = lock.setdefault("sources", {}).setdefault(source["id"], {})
+        skill_locks = source_lock.setdefault("skills", {})
+        for update in updates:
+            skill_locks[update["skill"]] = {
+                "commit": update["commit"],
+                "source_path": update["source_path"],
+                "content_sha256": update["content_sha256"],
+                "synced_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+            }
         write_json(LOCK, lock)
-        action = "imported" if initial_import else "updated and bumped"
-        print(f"  {action} {plugin} at {version}")
-        return True
+    return updates
+
+
+def finalize_sync_updates(updates_by_plugin: dict[str, list[dict]]) -> None:
+    """Release each affected plugin once, after every leaf update is applied."""
+    for plugin, updates in updates_by_plugin.items():
+        initial_import = all(update["initial"] for update in updates)
+        changelog = PLUGINS / plugin / "CHANGELOG.md"
+        if initial_import:
+            version = load_json(PLUGINS / plugin / ".claude-plugin" / "plugin.json")["version"]
+            lines = [f"## {version} - {datetime.now(timezone.utc).date().isoformat()}", ""]
+            lines.extend(
+                f"- Initial import of `{update['source_id']}/{update['skill']}` at `{update['commit']}`."
+                for update in updates
+            )
+            old = changelog.read_text(encoding="utf-8") if changelog.exists() else ""
+            changelog.write_text("\n".join(lines) + "\n\n" + old, encoding="utf-8")
+            print(f"Imported {len(updates)} skill(s) into {plugin} at {version}.")
+            continue
+        version = bump_plugin(plugin, updates)
+        names = ", ".join(update["skill"] for update in updates)
+        print(f"Updated {plugin} to {version}: {names}.")
 
 
 def add(args: argparse.Namespace) -> int:
@@ -318,19 +418,25 @@ def add(args: argparse.Namespace) -> int:
     sources["sources"].append(source)
     write_json(SOURCES, sources)
     print(f"registered {source_id}; fetching initial content")
-    sync_source(source, apply=True)
+    updates = sync_source(source, apply=True)
+    if updates:
+        finalize_sync_updates({plugin: updates})
     return validate()
 
 
 def sync(args: argparse.Namespace) -> int:
     sources = load_json(SOURCES)
-    changed = False
+    updates_by_plugin: dict[str, list[dict]] = {}
     for source in sources["sources"]:
-        changed = sync_source(source, apply=args.apply) or changed
-    if not changed:
+        updates = sync_source(source, apply=args.apply)
+        if updates:
+            updates_by_plugin.setdefault(source["plugin"], []).extend(updates)
+    if not updates_by_plugin:
         print("No upstream skill content changed.")
     elif not args.apply:
         print("Changes found. Re-run with --apply to vendor and release them.")
+    else:
+        finalize_sync_updates(updates_by_plugin)
     return validate() if args.apply else 0
 
 
