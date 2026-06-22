@@ -1,76 +1,44 @@
 {
   "name": "personal-plugins",
-  "owner": { "name": "cbrandborg" },
-  "metadata": {
-    "description": "Personal Claude Code plugins by cbrandborg"
+  "description": "Personal cross-agent plugins by Christian Brandborg",
+  "owner": {
+    "name": "Christian Brandborg"
   },
   "plugins": [
     {
-      "name": "xmind-campaign",
-      "version": "0.1.0",
-      "description": "Convert XMind mind maps into structured Obsidian vaults for DnD campaigns. Handles full pipeline: extraction, classification, scene generation, completeness auditing, and Canvas creation.",
-      "author": {
-        "name": "cbrandborg"
-      },
-      "source": "./plugins/xmind-campaign",
-      "category": "productivity",
-      "commands": ["./commands/"],
-      "agents": ["./agents/completeness-auditor.md", "./agents/content-classifier.md"],
-      "hooks": "./hooks/hooks.json",
-      "mcpServers": {},
-      "lspServers": {},
-      "tags": ["dnd", "obsidian", "xmind", "campaign", "ttrpg", "canvas"]
-    },
-    {
-      "name": "voting-assistant",
-      "version": "0.1.0",
-      "description": "Algocratic voting decision-support pipeline for Danish elections. Combines quantitative party analysis with qualitative voter interview to produce personalized voting recommendations.",
-      "author": {
-        "name": "cbrandborg"
-      },
-      "source": "./plugins/voting-assistant",
-      "category": "analysis",
-      "tags": ["voting", "elections", "denmark", "politik", "algocratic"]
-    },
-    {
-      "name": "gemini-images",
-      "version": "0.1.0",
-      "description": "Generate and modify images using Google Gemini's image generation API. Includes prompt refinement, style guide support, iterative workflows, and cost controls.",
-      "author": {
-        "name": "cbrandborg"
-      },
-      "source": "./plugins/gemini-images",
-      "category": "creative",
-      "commands": ["./commands/"],
-      "agents": ["./agents/iteration-agent.md", "./agents/variation-agent.md"],
-      "hooks": "./hooks/hooks.json",
-      "mcpServers": "./.mcp.json",
-      "tags": ["image-generation", "gemini", "google", "ai-images", "design"]
-    },
-    {
       "name": "dm-kit",
-      "version": "0.1.1",
-      "description": "D&D campaign authoring toolkit for Obsidian vaults: scaffolds scenes/chapters/characters with canvas sync, guidance for Danish/English read-aloud writing, structured brainstorming, and D&D 5e rules lookup (Open5e + dnd5eapi).",
-      "author": {
-        "name": "cbrandborg"
-      },
       "source": "./plugins/dm-kit",
-      "category": "productivity",
-      "agents": ["./agents/scene-reviewer.md"],
-      "hooks": "./hooks/hooks.json",
-      "tags": ["dnd", "dnd5e", "obsidian", "canvas", "authoring", "ttrpg", "dm", "campaign"]
+      "author": {
+        "name": "Christian Brandborg"
+      }
     },
     {
       "name": "env-guard",
-      "version": "0.1.0",
-      "description": "PreToolUse hook that blocks Claude Code from reading, writing, or editing .env files (with .env.example/.sample/.template/.dist allowed by default, more configurable via env var). Tokenizes commands, expands globs, and inspects nested shells.",
-      "author": {
-        "name": "cbrandborg"
-      },
       "source": "./plugins/env-guard",
-      "category": "security",
-      "hooks": "./hooks/hooks.json",
-      "tags": ["security", "secrets", "env", "hooks", "safety"]
+      "author": {
+        "name": "Christian Brandborg"
+      }
+    },
+    {
+      "name": "gemini-images",
+      "source": "./plugins/gemini-images",
+      "author": {
+        "name": "Vanir Labs"
+      }
+    },
+    {
+      "name": "xmind-campaign",
+      "source": "./plugins/xmind-campaign",
+      "author": {
+        "name": "Christian Brandborg"
+      }
+    },
+    {
+      "name": "mattpocock-productivity",
+      "source": "./plugins/mattpocock-productivity",
+      "author": {
+        "name": "Christian Brandborg"
+      }
     }
   ]
 }

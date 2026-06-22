@@ -1,0 +1,68 @@
+{
+  "name": "personal-plugins",
+  "interface": {
+    "displayName": "Personal Plugins"
+  },
+  "plugins": [
+    {
+      "name": "dm-kit",
+      "source": {
+        "source": "local",
+        "path": "./plugins/dm-kit"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "env-guard",
+      "source": {
+        "source": "local",
+        "path": "./plugins/env-guard"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Security"
+    },
+    {
+      "name": "gemini-images",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gemini-images"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creative"
+    },
+    {
+      "name": "xmind-campaign",
+      "source": {
+        "source": "local",
+        "path": "./plugins/xmind-campaign"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mattpocock-productivity",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mattpocock-productivity"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

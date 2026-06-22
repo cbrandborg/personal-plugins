@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "mattpocock-productivity",
+      "plugin": "mattpocock-productivity",
+      "git": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "path": "skills/productivity",
+      "category": "Productivity",
+      "description": "Matt Pocock productivity skills for grilling plans, handoffs, teaching, and skill authoring."
+    }
+  ]
+}

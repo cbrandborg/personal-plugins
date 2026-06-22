@@ -1,0 +1,39 @@
+name: Sync skills
+
+on:
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: personal-plugins-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Sync registered upstream skills and bump changed plugin versions
+        run: python3 scripts/skills.py sync --apply
+      - name: Validate generated marketplace state
+        run: python3 scripts/skills.py validate
+      - name: Commit and push updated skills
+        run: |
+          if git diff --quiet; then
+            echo "No upstream content changes to publish."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins sources.lock.json
+          git commit -m "chore(skills): weekly upstream sync"
+          git push

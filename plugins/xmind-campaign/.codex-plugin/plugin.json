@@ -1,0 +1,20 @@
+{
+  "name": "xmind-campaign",
+  "version": "0.1.0",
+  "description": "Convert XMind campaign maps into structured Obsidian vaults for D&D campaigns.",
+  "author": {
+    "name": "Christian Brandborg",
+    "url": "https://github.com/cbrandborg"
+  },
+  "repository": "https://github.com/cbrandborg/personal-plugins",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "XMind Campaign",
+    "shortDescription": "Turn XMind campaign maps into Obsidian vaults.",
+    "longDescription": "Extract, classify, generate, audit, and map D&D campaign content from XMind.",
+    "developerName": "Christian Brandborg",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Turn this XMind campaign map into an Obsidian vault."]
+  }
+}

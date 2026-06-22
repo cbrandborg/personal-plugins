@@ -1,0 +1,20 @@
+{
+  "name": "dm-kit",
+  "version": "0.1.1",
+  "description": "D&D campaign authoring toolkit for Obsidian vaults: scaffolds scenes, chapters, characters, brainstorming, and 5e rules lookup.",
+  "author": {
+    "name": "Christian Brandborg",
+    "url": "https://github.com/cbrandborg"
+  },
+  "repository": "https://github.com/cbrandborg/personal-plugins",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DM Kit",
+    "shortDescription": "D&D campaign authoring skills for Obsidian.",
+    "longDescription": "Scaffold and write D&D campaign content with Obsidian canvas support and 5e rules lookup.",
+    "developerName": "Christian Brandborg",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Help me author my D&D campaign in Obsidian."]
+  }
+}
