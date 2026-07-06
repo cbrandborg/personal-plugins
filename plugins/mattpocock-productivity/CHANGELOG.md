@@ -1,3 +1,7 @@
+## 0.1.3 - 2026-07-06
+
+- Synced `mattpocock-productivity/wayfinder` at `66f92b61f5b1434a1c7422f6fbd8efc5ee0c0214`.
+
 ## 0.1.2 - 2026-06-29
 
 - Synced `mattpocock-productivity-writing-great-skills/writing-great-skills` at `5d78bd0903420f97c791f834201e550c765699f8`.

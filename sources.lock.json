@@ -49,6 +49,16 @@
           "synced_at": "2026-06-29T12:08:55+00:00"
         }
       }
+    },
+    "mattpocock-productivity": {
+      "skills": {
+        "wayfinder": {
+          "commit": "66f92b61f5b1434a1c7422f6fbd8efc5ee0c0214",
+          "source_path": "skills/in-progress/wayfinder",
+          "content_sha256": "375c8a1dd6723f41bdcfaec525618d1036ea1714a93227475a41becce41d52e2",
+          "synced_at": "2026-07-06T08:41:47+00:00"
+        }
+      }
     }
   }
 }
