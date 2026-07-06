@@ -1,3 +1,7 @@
+## 0.1.4 - 2026-07-06
+
+- Synced `mattpocock-productivity-grilling/grilling` at `66f92b61f5b1434a1c7422f6fbd8efc5ee0c0214`.
+
 ## 0.1.3 - 2026-07-06
 
 - Synced `mattpocock-productivity/wayfinder` at `66f92b61f5b1434a1c7422f6fbd8efc5ee0c0214`.
