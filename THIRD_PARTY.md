@@ -21,5 +21,6 @@ importer does not automatically copy repository-level license files.
 ## Other components
 
 The import/sync tooling and other plugin directories are maintained here by
-Christian Brandborg. Third-party runtime libraries retain their own licenses.
+Christian Brandborg and licensed under [0BSD](LICENSE). Each original plugin
+bundle includes its own copy of that license. Third-party runtime libraries retain their own licenses.
 Generated content and user-supplied vaults/images are not licensed by this notice.

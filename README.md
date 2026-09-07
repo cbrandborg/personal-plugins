@@ -142,3 +142,13 @@ plugins/<name>/                     bundled skills and plugin components
 ```
 
 `AGENTS.md` contains contributor instructions; `CLAUDE.md` points to it.
+
+## License
+
+Original code and plugin content by Christian Brandborg are licensed under
+[0BSD](LICENSE): use, modify, and redistribute them, including commercially,
+without an attribution requirement.
+
+Imported Matt Pocock skills remain under their [MIT license](plugins/mattpocock-productivity/LICENSE),
+which requires retaining its copyright and license notice. The root license does
+not replace third-party terms; see [attribution](THIRD_PARTY.md).
