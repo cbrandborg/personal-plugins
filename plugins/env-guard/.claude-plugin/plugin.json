@@ -1,10 +1,16 @@
 {
   "name": "env-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "PreToolUse hook that blocks Claude Code from reading, writing, or editing .env files (with .env.example/.sample/.template/.dist allowed). Tokenizes commands, expands globs, and inspects nested shells.",
   "author": {
     "name": "cbrandborg",
     "email": ""
   },
-  "keywords": ["security", "secrets", "env", "hooks", "safety"]
+  "keywords": [
+    "security",
+    "secrets",
+    "env",
+    "hooks",
+    "safety"
+  ]
 }

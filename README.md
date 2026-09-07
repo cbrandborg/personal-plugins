@@ -1,105 +1,144 @@
 # Personal Plugins
 
-A Git-backed personal plugin marketplace for **Claude Code and Codex**. Each
-plugin lives once in `plugins/<name>/`; its shared `skills/` content is shipped
-to both agents through provider-specific manifests.
+I collect useful agent skills from different places and package them into plugins
+for Claude Code and Codex. This repository contains the import and sync tooling,
+the resulting bundles, and a few plugins I built for my own workflows.
 
-`AGENTS.md` is the source of project instructions. `CLAUDE.md` points directly
-to it, so Claude Code and Codex work from the same guidance.
+**Personal tooling, shared as an experiment.** Imported skills retain their
+upstream authorship. The marketplace registries are how the agents discover and
+install the plugins; running a marketplace is not the purpose of this project.
 
-## Install
+## What the importer does
 
-### Claude Code
+- Imports a skill or collection from a Git repository or a `skills.sh` link.
+- Packages skills with separate Claude Code and Codex manifests.
+- Records each imported skill's source path, revision, and content hash.
+- Updates changed skills without rewriting unchanged siblings.
+- Preserves local edits when upstream is unchanged; reports a conflict when both change.
+- Stages an entire add/sync before applying it, including lock files and versions.
+- Bumps each affected plugin once and records changed skills in its changelog.
+
+The importer uses Python's standard library and Git. It assumes one writer at a
+time. Recoverable errors are rolled back; applying several files is not an
+atomic operation against a machine crash or another concurrent writer.
+
+## Try an import and update locally
+
+Requires Git and Python 3.13+. The example creates a synthetic upstream skill,
+imports it, changes the upstream, checks the diff, applies the update, and
+verifies the lock and version. It uses temporary directories, no network or keys,
+and leaves this checkout unchanged.
+
+```bash
+python3.13 scripts/demo-import.py
+```
+
+See [the walkthrough](docs/import-example.md) for the resulting files and diff.
+
+## Import your own skills
+
+Install [just](https://github.com/casey/just) to use the shortcuts, or invoke
+`python3.13 scripts/skills.py` directly. Use a new plugin name and source ID:
+
+```bash
+# Replace owner/repo and path with the upstream you want to import.
+just add-skill owner/repo skills/example my-example --id example-source
+
+# Import from a skills.sh page into a new bundle.
+just add-skills-sh https://skills.sh/mattpocock/skills/grill-me my-grill-me --id my-grill-me-import
+
+just sync-skills --check
+just sync-skills --apply
+```
+
+`--id` identifies an upstream registration; `--plugin` identifies the destination
+bundle. Multiple sources may share a bundle but must use distinct source IDs and
+skill names. Reusing an existing ID is rejected. The source defaults to branch
+`main`; use `--ref` for another branch or tag. The sync follows that reference;
+the lock records the last imported content, not a command to restore a checkout.
+
+A check is read-only. It exits nonzero on a conflict or fetch failure. Ordinary
+available updates exit successfully and are listed for review. Failed adds and
+syncs leave the original repository files unchanged for handled errors.
+
+### Invocation policy changes
+
+The importer removes the Claude-specific `disable-model-invocation` frontmatter
+field. **This changes behavior:** a skill previously restricted to explicit
+invocation may become eligible for automatic selection. This is the current
+normalization policy, not a guarantee of equivalent behavior across agents.
+Review imported instructions and their invocation policy before installation.
+
+### Attribution
+
+Review each upstream's license before redistributing its skills, including
+repository-level notices that may live outside the selected skill directory.
+The importer copies skill directories; it does not resolve license obligations
+automatically. Preserve required notices inside the resulting plugin bundle.
+See [third-party attribution](THIRD_PARTY.md).
+
+## Bundles
+
+| Bundle | Origin and scope | Status |
+| --- | --- | --- |
+| `mattpocock-productivity` | Matt Pocock's `grill-me`, `grilling`, `handoff`, `teach`, `writing-great-skills`, and `wayfinder`, packaged here | Imported; upstream revisions tracked |
+| `dm-kit` | My Obsidian campaign-authoring workflows and canvas scripts | Experimental; offline canvas regressions |
+| `gemini-images` | My Gemini MCP integration and image workflows | Experimental; offline helper tests, opt-in live API tests |
+| `env-guard` | My accidental `.env` access check | Experimental Claude hook; not a security boundary |
+| `xmind-campaign` | My older XMind-to-Obsidian migration workflows | Legacy; not part of the current automated test coverage |
+
+My contribution to the imported bundle is packaging, normalization, and update
+management. The skills themselves are credited to their upstream author.
+
+## Install a bundle
+
+These are host-specific entry points. Both manifest formats are validated, but
+that is not an end-to-end compatibility guarantee. See [testing and support](docs/testing.md)
+for the scope of verified behavior and manual installation checks.
+
+Claude Code:
 
 ```text
 /plugin marketplace add https://github.com/cbrandborg/personal-plugins
 /plugin install mattpocock-productivity@personal-plugins
 ```
 
-### Codex
+Codex:
 
 ```bash
 codex plugin marketplace add cbrandborg/personal-plugins
 codex plugin add mattpocock-productivity@personal-plugins
 ```
 
-For local Codex development from a clone, run `codex plugin marketplace add .`
-at the repository root.
+For Gemini authentication and standalone MCP setup, see [its README](plugins/gemini-images/README.md).
 
-## Marketplace layout
+## Development
+
+```bash
+python3.13 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+PYTHON=python just ci
+```
+
+CI validates the registries and skills, exercises importer failure handling and
+bundled scripts, tests actual Gemini helpers, and runs the local import/update
+example. It makes no model API calls. [Testing details](docs/testing.md).
+
+The weekly sync job follows upstream, runs offline checks, and commits changes to
+`main`. This is unattended personal automation, **not human review of upstream
+instructions**. Inspect updates before using them; disable the schedule in your
+fork if you prefer manual updates.
+
+## Layout
 
 ```text
-.claude-plugin/marketplace.json     # Claude Code marketplace
-.agents/plugins/marketplace.json    # Codex marketplace
-plugins/<name>/
-  .claude-plugin/plugin.json
-  .codex-plugin/plugin.json
-  skills/
+scripts/skills.py                   import and sync implementation
+sources.json                       upstream registrations
+sources.lock.json                  imported revisions and content hashes
+plugins/<name>/                     bundled skills and plugin components
+.claude-plugin/marketplace.json     Claude Code installation registry
+.agents/plugins/marketplace.json    Codex installation registry
 ```
 
-Plugin content is bundled by **provider and cohesive capability**. The first
-sync-managed bundle is `mattpocock-productivity`, rather than five tiny
-plugins: it has one upstream, one release cadence, and a clearly related set of
-productivity workflows. A future source can be one plugin per provider, or a
-provider/category bundle when that better matches how its upstream is released.
-
-## Managed imports
-
-`sources.json` declares imported Git sources. `sources.lock.json` records the
-exact commit and source path for each skill currently shipped. Imported files
-are vendored into the plugin, so a Git commit in this repository is
-self-contained and reviewable.
-
-Add a collection from a repository:
-
-```bash
-just add-skill mattpocock/skills skills/productivity mattpocock-productivity
-```
-
-Add one skill from a `skills.sh` page; the script resolves the backing GitHub
-repository and discovers the skill's nested source path automatically:
-
-```bash
-just add-skills-sh https://skills.sh/mattpocock/skills/grill-me mattpocock-grill-me
-```
-
-If a skills.sh page maps ambiguously to a repository, pass an explicit source
-path with the repository form:
-
-```bash
-just add-skill owner/repo skills/category/skill owner-skill
-```
-
-Check and apply updates:
-
-```bash
-just sync-skills --check
-just sync-skills --apply
-PYTHON=python3.13 just validate
-just ci
-```
-
-An applied update compares every tracked skill directory independently. It
-replaces **only** a skill whose normalized content differs upstream; it neither
-touches sibling skills nor bumps a version when a source commit has no skill
-content change. If one or more skills in the same bundle changed, the bundle is
-bumped exactly once and its changelog names every changed skill. The marketplace
-files do not duplicate plugin versions; the manifests are the single version
-source.
-
-## Automated weekly sync
-
-`.github/workflows/sync-skills.yml` runs every Monday at 07:17 UTC and is also
-available through **Run workflow**. It performs the same sync, validates the
-marketplace, and commits content/version updates directly to `main`. If no
-upstream skill content changed, it exits without making a commit.
-
-## Current dual-agent plugins
-
-| Plugin | Purpose |
-| --- | --- |
-| `mattpocock-productivity` | Five vendored productivity skills: `grill-me`, `grilling`, `handoff`, `teach`, and `writing-great-skills`. |
-| `dm-kit` | D&D campaign authoring workflows for Obsidian. |
-| `env-guard` | `.env` protection hooks. |
-| `gemini-images` | Gemini image-generation workflows. |
-| `xmind-campaign` | Turn XMind campaign maps into structured Obsidian vaults. |
+`AGENTS.md` contains contributor instructions; `CLAUDE.md` points to it.

@@ -1,6 +1,6 @@
 {
   "name": "env-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Protect .env files from accidental agent reads and edits.",
   "author": {
     "name": "Christian Brandborg",
@@ -13,7 +13,11 @@
     "longDescription": "A safety hook bundle that blocks accidental reads and edits of real .env files.",
     "developerName": "Christian Brandborg",
     "category": "Security",
-    "capabilities": ["Read"],
-    "defaultPrompt": ["Protect this workspace from accidental .env access."]
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Protect this workspace from accidental .env access."
+    ]
   }
 }

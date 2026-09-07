@@ -1,16 +1,22 @@
 """Shared fixtures for gemini-images tests."""
 
+import os
 import subprocess
 import sys
 
 import pytest
-from google import genai
 
 
 @pytest.fixture(scope="session")
 def api_key() -> str:
     """Resolve Gemini API key from 1Password. Skips if unavailable."""
-    ref = "op://Vanir Labs/GEMINI_IMAGE_CLI_KEY/credential"
+    if os.environ.get("RUN_GEMINI_INTEGRATION") != "1":
+        pytest.skip("Set RUN_GEMINI_INTEGRATION=1 to opt in to billable API tests")
+    if key := os.environ.get("GEMINI_API_KEY"):
+        return key
+    ref = os.environ.get("OP_GEMINI_API_KEY_REF")
+    if not ref:
+        pytest.skip("Set GEMINI_API_KEY or OP_GEMINI_API_KEY_REF")
     try:
         result = subprocess.run(
             ["op", "read", ref], capture_output=True, text=True, timeout=10
@@ -24,6 +30,7 @@ def api_key() -> str:
 
 
 @pytest.fixture(scope="session")
-def client(api_key: str) -> genai.Client:
+def client(api_key: str):
     """Authenticated Gemini client."""
+    from google import genai
     return genai.Client(api_key=api_key)

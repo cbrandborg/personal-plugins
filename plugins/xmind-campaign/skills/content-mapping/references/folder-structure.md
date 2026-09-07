@@ -4,7 +4,7 @@
 
 The vault root is the campaign folder, e.g.:
 ```
-/Users/priv/Documents/private-obsidian/DnD/The Plague of Myrkul/
+/path/to/campaigns/The Plague of Myrkul/
 ```
 
 The plugin asks for this path at the start of each run. It is stored in settings for the campaign.
@@ -90,12 +90,12 @@ The plugin stores the last-used vault path in:
 Format:
 ```markdown
 ---
-last_vault: /Users/priv/Documents/private-obsidian/DnD/The Plague of Myrkul
+last_vault: /path/to/campaigns/The Plague of Myrkul
 campaigns:
   - name: The Plague of Myrkul
-    vault: /Users/priv/Documents/private-obsidian/DnD/The Plague of Myrkul
+    vault: /path/to/campaigns/The Plague of Myrkul
   - name: Curse of Strahd
-    vault: /Users/priv/Documents/private-obsidian/DnD/Curse of Strahd
+    vault: /path/to/campaigns/Curse of Strahd
 ---
 
 # XMind Campaign Plugin Settings

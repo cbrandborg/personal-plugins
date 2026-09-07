@@ -14,7 +14,7 @@ and .env.public.
 
 Residual risk (not caught by design): python3 -c / node -e / eval / $(...) -
 runtime code can't be statically analyzed without breaking normal usage.
-Use `chmod 400 .env` for real defense.
+This is a best-effort guard, not a sandbox or a replacement for permissions.
 """
 import glob, json, os, re, shlex, sys
 
@@ -72,7 +72,7 @@ def scan(cmd: str, cwd: str, depth: int = 0):
 
     for tok in tokens:
         for path in resolve(tok, cwd):
-            if is_protected(os.path.basename(path)):
+            if is_protected(os.path.basename(path)) or is_protected(os.path.basename(os.path.realpath(path))):
                 return f"{tok!r} resolves to {path}"
     return None
 
@@ -91,8 +91,11 @@ def main():
         reason = scan(inp.get("command", "") or "", cwd)
     elif name in FILE_TOOLS:
         p = inp.get("file_path") or inp.get("notebook_path") or ""
-        if p and is_protected(os.path.basename(p)):
-            reason = f"{name} on {p}"
+        if p:
+            for resolved in resolve(p, cwd):
+                if is_protected(os.path.basename(resolved)) or is_protected(os.path.basename(os.path.realpath(resolved))):
+                    reason = f"{name} on {p}"
+                    break
 
     if reason:
         print(json.dumps({

@@ -27,28 +27,10 @@ from PIL import Image as PIL_Image
 
 
 def resolve_api_key() -> str:
-    """Resolve API key, same logic as server."""
-    key = os.environ.get("GEMINI_API_KEY")
-    if key:
-        print("  Key source: GEMINI_API_KEY env var")
-        return key
-
-    try:
-        ref = os.environ.get(
-            "OP_GEMINI_API_KEY_REF",
-            "op://Vanir Labs/GEMINI_IMAGE_CLI_KEY/credential",
-        )
-        result = subprocess.run(
-            ["op", "read", ref], capture_output=True, text=True, timeout=10
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            print(f"  Key source: 1Password ({ref})")
-            return result.stdout.strip()
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-
-    print("  ERROR: No API key found")
-    sys.exit(1)
+    """Use the server's actual key resolution; credentials are never printed."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "server"))
+    from gemini_server import _resolve_api_key
+    return _resolve_api_key()
 
 
 def test_generate_image(client: genai.Client, output_dir: Path) -> Path:
@@ -170,6 +152,8 @@ def test_aspect_ratios(client: genai.Client):
 
 
 def main():
+    if os.environ.get("RUN_GEMINI_INTEGRATION") != "1":
+        raise SystemExit("Set RUN_GEMINI_INTEGRATION=1 to opt in to billable API tests")
     print("=== Gemini Images Plugin — Integration Tests ===")
 
     print("\n[Setup] Resolving API key...")

@@ -6,63 +6,9 @@ from pathlib import Path
 # Add server dir to path so we can import helpers
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "server"))
 
-# Import after path setup — we can't import the module directly since it
-# calls FastMCP() at import time, so we exec the relevant functions.
-import re
-
-# Re-implement the helpers here to test them in isolation.
-# This avoids importing the server module which starts MCP.
-_VARIATION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-_SUPPORTED_MODELS = {
-    "gemini-2.5-flash-image": 0.039,
-    "gemini-3.1-flash-image-preview": 0.10,
-    "gemini-3-pro-image-preview": 0.19,
-}
-
-
-def _slugify(text: str) -> str:
-    slug = text.lower().strip()
-    slug = re.sub(r"[^a-z0-9\s_-]", "", slug)
-    slug = re.sub(r"[\s_]+", "-", slug)
-    slug = re.sub(r"-+", "-", slug).strip("-")
-    return slug[:60] if slug else "image"
-
-
-def _next_variation(output_dir: Path, slug: str) -> str:
-    existing = set()
-    for f in output_dir.iterdir():
-        match = re.match(rf"^{re.escape(slug)}-([A-Z])(?:-v\d+)?\.\w+$", f.name)
-        if match:
-            existing.add(match.group(1))
-    for letter in _VARIATION_LETTERS:
-        if letter not in existing:
-            return letter
-    return "Z"
-
-
-def _next_sequence(output_dir: Path, slug: str, variation: str) -> int | None:
-    base_pattern = rf"^{re.escape(slug)}-{re.escape(variation)}(?:-v(\d+))?\.\w+$"
-    max_seq = 0
-    for f in output_dir.iterdir():
-        match = re.match(base_pattern, f.name)
-        if match:
-            seq = int(match.group(1)) if match.group(1) else 1
-            max_seq = max(max_seq, seq)
-    return max_seq + 1 if max_seq > 0 else None
-
-
-def _build_filename(slug: str, variation: str, sequence: int | None, ext: str) -> str:
-    if sequence and sequence > 1:
-        return f"{slug}-{variation}-v{sequence}.{ext}"
-    return f"{slug}-{variation}.{ext}"
-
-
-def _validate_model(model: str) -> str | None:
-    import json
-    if model not in _SUPPORTED_MODELS:
-        return json.dumps({"error": f"Unknown model: {model}"})
-    return None
+from image_helpers import (
+    _slugify, _next_variation, _next_sequence, _build_filename, _validate_model,
+)
 
 
 # ── slugify ──────────────────────────────────────────────

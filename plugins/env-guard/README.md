@@ -1,66 +1,39 @@
 # env-guard
 
-A `PreToolUse` hook that blocks Claude Code from reading, writing, or editing `.env` files. Stops accidental exposure of secrets to the model and prevents the assistant from echoing them back into chat, logs, or commits.
+Experimental Claude Code hook for catching accidental reads and edits of `.env`
+files. This is a best-effort check, **not a security boundary**. Keep your existing
+permission rules and sandbox restrictions. Codex hook behavior is unverified.
 
-## What gets blocked
+## Behavior
 
-- `.env`
-- `.env.local`, `.env.production`, `.env.staging`, ... (any `.env.<x>` not in the allow list)
+The hook checks supported file-tool paths and tokenizes Bash commands. It checks
+both the supplied basename and the resolved symlink target. It can recognize
+nested shell commands and expand path variables and globs.
 
-## What passes through
+Protected names: `.env` and `.env.*`, except `.env.example`, `.env.sample`,
+`.env.template`, and `.env.dist`. `.envrc` is also allowed. Never put credentials
+in these allowed template files.
 
-- `.env.example`
-- `.env.sample`
-- `.env.template`
-- `.env.dist`
-- `.envrc` (direnv)
+`ENV_GUARD_EXTRA_ALLOWED_TAILS=shared,public` adds explicitly allowed suffixes.
 
-These are the conventional names for committed-to-VCS templates that should never contain real secrets.
+## Limitations
 
-### Adding your own safe suffixes
+This is not a complete shell parser. Dynamic code, directory-wide reads, hard
+links, unsupported tools, and file changes after the check can bypass it.
+False positives are possible when a command argument resembles a filename.
+The hook cannot protect against a process that already has filesystem access.
+`chmod 400` still allows the file's owner to read it.
 
-If your project uses a non-standard convention (e.g. `.env.shared`, `.env.public`), extend the allow list with the `ENV_GUARD_EXTRA_ALLOWED_TAILS` environment variable. Comma-separated, no leading dots:
+Do not replace `permissions.deny` rules with this hook. Use it only as an
+additional convenience check; host permissions and process isolation remain
+separate responsibilities.
 
-```json
-// ~/.claude/settings.json
-{
-  "env": {
-    "ENV_GUARD_EXTRA_ALLOWED_TAILS": "shared,public"
-  }
-}
-```
+## Install in Claude Code
 
-That allows `.env.shared` and `.env.public` while keeping everything else blocked.
-
-## How it works
-
-The hook fires on `Bash`, `Read`, `Edit`, `Write`, `MultiEdit`, and `NotebookEdit`. For Bash it tokenises the command with `shlex`, expands globs, and unwraps env-var assignments and `file://` prefixes. For file tools it inspects the `file_path` argument directly. If any resolved basename matches a protected pattern, the call is denied with `permissionDecision: "deny"`.
-
-It also recurses into nested shells (`sh -c "..."`, `bash -c "..."`, ...) up to depth 2, so wrapping a `cat .env` inside a subshell does not bypass it.
-
-### What it does not catch (by design)
-
-Runtime code execution that produces filenames dynamically: `python3 -c "open('.env')"`, `node -e "..."`, `eval`, `$(...)`. Statically analysing these would require breaking normal usage. For real defence, also run `chmod 400 .env`.
-
-## Installation
-
-```bash
+```text
 /plugin marketplace add https://github.com/cbrandborg/personal-plugins
 /plugin install env-guard@personal-plugins
 ```
 
-Requires Python 3 on PATH (it is, on every macOS and most Linux dev boxes).
-
-## Relationship to `permissions.deny`
-
-If you previously protected `.env` files via `permissions.deny` patterns in `~/.claude/settings.json` (e.g. `"Read(.env*)"`, `"Bash(cat *.env*)"`, ...), this hook supersedes them. The hook is more thorough: it understands globs, env-var assignments, and nested shells, where the deny patterns rely on string matching against the literal command.
-
-You can either:
-- **Remove** the deny patterns once this plugin is installed (cleaner).
-- **Keep** them as defense-in-depth (the hook will still take precedence when active, the deny patterns kick in if the plugin is ever disabled).
-
-## Development
-
-The hook script lives at `hooks/block-env.py` and is referenced from `hooks/hooks.json` via `${CLAUDE_PLUGIN_ROOT}`, so it works regardless of where the plugin is installed.
-
-To test changes locally, edit the script and trigger a matching tool call - denied calls return a JSON `permissionDecisionReason` that names the resolving token and path.
+Requires Python 3. Hook configuration lives in `hooks/hooks.json`. Offline
+regressions are run by `just ci` at the repository root.

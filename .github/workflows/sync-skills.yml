@@ -24,8 +24,14 @@ jobs:
           python-version: "3.13"
       - name: Sync registered upstream skills and bump changed plugin versions
         run: python3.13 scripts/skills.py sync --apply
-      - name: Validate generated marketplace state
-        run: python3.13 scripts/skills.py validate
+      - name: Install offline test dependencies
+        run: python3.13 -m pip install -r requirements-dev.txt
+      - name: Validate and test before committing
+        run: |
+          python3.13 scripts/skills.py validate
+          python3.13 -m unittest discover -s tests -v
+          python3.13 -m pytest plugins/gemini-images/tests/test_helpers.py -q
+          python3.13 scripts/demo-import.py
       - name: Commit and push updated skills
         run: |
           if git diff --quiet; then
