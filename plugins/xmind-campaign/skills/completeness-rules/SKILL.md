@@ -2,6 +2,8 @@
 name: completeness-rules
 description: "This skill should be used when the user asks to \"check completeness\", \"verify nothing was missed\", \"audit the import\", \"did we miss any nodes\", \"check summary subtrees\", \"run the completeness check\", or after generating scene files from an XMind export. Critical: ensures every notes-bearing node and every summary subtree has a corresponding output file."
 version: 0.1.0
+author: Christian Brandborg
+license: 0BSD
 ---
 
 # Completeness Rules — Ensuring Nothing Is Missed

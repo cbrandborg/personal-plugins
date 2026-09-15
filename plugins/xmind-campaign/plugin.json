@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "xmind-campaign",
+  "version": "0.2.0",
+  "description": "Extract XMind maps and turn them into structured, audited Obsidian campaign notes and canvases.",
+  "author": {
+    "name": "Christian Brandborg",
+    "url": "https://github.com/cbrandborg"
+  },
+  "repository": "https://github.com/cbrandborg/personal-plugins",
+  "license": "0BSD",
+  "keywords": [
+    "xmind",
+    "obsidian",
+    "campaign",
+    "canvas"
+  ]
+}

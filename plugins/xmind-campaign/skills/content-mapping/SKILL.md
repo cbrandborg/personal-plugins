@@ -2,6 +2,8 @@
 name: content-mapping
 description: "This skill should be used when the user asks to \"classify nodes\", \"map content\", \"decide where this goes\", \"which folder\", \"what type is this node\", or when processing XMind nodes and determining how they map to Obsidian vault structure for a DnD campaign. Use during extract, audit, and generate phases of the xmind-campaign pipeline."
 version: 0.1.0
+author: Christian Brandborg
+license: 0BSD
 ---
 
 # Content Mapping — XMind Nodes to Obsidian Vault
@@ -130,7 +132,7 @@ When a target file already exists:
 
 1. Check if the XMind node has a note or tag indicating it was updated (e.g. title contains "[UPDATE]" or "[REVISED]")
 2. If update flag is present → proceed with overwrite after confirming with user
-3. If no flag → the `PreToolUse` hook will intercept the write and ask: Overwrite / Skip / Diff first
+3. If no flag → ask the user to choose: Overwrite / Skip / Diff first
 
 Never silently overwrite. Always surface the choice.
 

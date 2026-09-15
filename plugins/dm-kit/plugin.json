@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dm-kit",
+  "version": "0.1.2",
+  "description": "D&D campaign authoring toolkit for Obsidian vaults with scene, chapter, and character scaffolding, canvas sync, writing guidance, brainstorming, and 5e rules lookup.",
+  "author": {
+    "name": "Christian Brandborg",
+    "url": "https://github.com/cbrandborg"
+  },
+  "repository": "https://github.com/cbrandborg/personal-plugins",
+  "license": "0BSD",
+  "keywords": [
+    "dnd",
+    "dnd5e",
+    "obsidian",
+    "canvas",
+    "authoring",
+    "ttrpg",
+    "campaign"
+  ]
+}

@@ -65,8 +65,12 @@ def _safe_member_parts(info: zipfile.ZipInfo) -> tuple[str, ...]:
     return path.parts
 
 
-def safe_extract_archive(xmind_path: str | Path, output_dir: str | Path) -> None:
-    """Extract a bounded XMind archive without traversal or special files."""
+def _extract_archive_transaction(
+    xmind_path: str | Path,
+    output_dir: str | Path,
+    prepare_staging=None,
+) -> None:
+    """Extract, prepare, and atomically commit an XMind archive."""
     requested_output = Path(output_dir).absolute()
     if requested_output.is_symlink():
         raise ValueError("output directory must not be a symlink")
@@ -132,6 +136,9 @@ def safe_extract_archive(xmind_path: str | Path, output_dir: str | Path) -> None
                             )
                         destination.write(chunk)
 
+            if prepare_staging is not None:
+                prepare_staging(staging)
+
             backup = output.parent / f".{output.name}.backup-{uuid.uuid4().hex}"
             moved_existing = False
             commit_complete = False
@@ -160,18 +167,32 @@ def safe_extract_archive(xmind_path: str | Path, output_dir: str | Path) -> None
                     shutil.rmtree(backup)
 
 
+def safe_extract_archive(xmind_path: str | Path, output_dir: str | Path) -> None:
+    """Extract a bounded XMind archive without traversal or special files."""
+    _extract_archive_transaction(xmind_path, output_dir)
+
+
 def extract_xmind(xmind_path: str, output_dir: str):
     """Extract and parse an XMind file."""
     # XMind files are ZIP archives. Extract only bounded regular files under
-    # the selected output directory; never trust member paths from the archive.
-    safe_extract_archive(xmind_path, output_dir)
+    # a private staging directory; only publish it after derived output succeeds.
+    _extract_archive_transaction(
+        xmind_path,
+        output_dir,
+        lambda staging: _generate_derived_files(staging, output_dir),
+    )
 
-    content_path = os.path.join(output_dir, "content.json")
-    if not os.path.exists(content_path):
+
+def _generate_derived_files(staging_dir: str | Path, output_dir: str | Path) -> None:
+    """Validate content and generate all derived files inside staging."""
+    staging_dir = Path(staging_dir)
+
+    content_path = staging_dir / "content.json"
+    if not content_path.exists():
         print("ERROR: No content.json found in XMind file")
         sys.exit(1)
 
-    with open(content_path) as f:
+    with content_path.open() as f:
         data = json.load(f)
 
     print(f"Sheets found: {len(data)}")
@@ -182,21 +203,21 @@ def extract_xmind(xmind_path: str, output_dir: str):
     full_tree = extract_topic(root)
 
     # Save full tree
-    with open(os.path.join(output_dir, "full_tree.json"), "w") as f:
+    with (staging_dir / "full_tree.json").open("w") as f:
         json.dump(full_tree, f, indent=2, ensure_ascii=False)
 
     # Save individual branches
     for i, child in enumerate(full_tree.get("children", [])):
-        branch_path = os.path.join(output_dir, f"branch_{i:02d}.json")
-        with open(branch_path, "w") as f:
+        branch_path = staging_dir / f"branch_{i:02d}.json"
+        with branch_path.open("w") as f:
             json.dump(child, f, indent=2, ensure_ascii=False)
         n, c = count_tree(child)
         print(f"  Branch {i:02d}: {child['title'][:50]} ({n} nodes, {c} chars)")
 
     # Find and report all summary subtrees
     summaries = find_all_summaries(full_tree)
-    report_path = os.path.join(output_dir, "summary_report.txt")
-    with open(report_path, "w") as f:
+    report_path = staging_dir / "summary_report.txt"
+    with report_path.open("w") as f:
         f.write(f"Summary subtrees found: {len(summaries)}\n\n")
         for s in summaries:
             n, c = count_tree(s["summary"])
@@ -209,7 +230,7 @@ def extract_xmind(xmind_path: str, output_dir: str):
     if summaries:
         print(f"WARNING: {len(summaries)} summary subtrees detected!")
         print("These contain content in XMind bracket/brace groupings.")
-        print(f"See {report_path} for details.")
+        print(f"See {Path(output_dir) / 'summary_report.txt'} for details.")
 
 
 def extract_topic(topic: dict, path: str = "") -> dict:

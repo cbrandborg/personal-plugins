@@ -14,7 +14,7 @@ installation cache that may be replaced on upgrade.
 
 ## Run the server
 
-Requires Python 3.13 and `uv` 0.5.10:
+Requires Python 3.13 and `uv` 0.12.15:
 
 ```bash
 uv run --locked --directory /absolute/path/to/personal-plugins/plugins/gemini-images \
@@ -27,10 +27,19 @@ hosts is unverified. Configure absolute paths explicitly if your host does not
 provide that variable. Shared skills do not imply identical commands/hooks in
 both agents.
 
-Pass absolute input/output paths. Relative output defaults resolve from the
+Pass absolute input/output paths. Local uploads (`reference_image_path`,
+`modify_image.image_path`, and `generate_variations.image_path`) also require an
+absolute `allowed_input_root`. The server rejects inputs outside that root,
+symlinked path components, files over 10 MiB, and bytes that Pillow cannot fully
+decode as PNG, JPEG, or WebP. Relative output defaults resolve from the
 server's working directory, which may be the plugin directory rather than your
-project. Model availability and approximate cost values can change; the server's
-estimates are not a billing guarantee. Concurrent image writes are not coordinated.
+project. Secure local uploads require descriptor-relative, no-follow file opens;
+platforms without those primitives reject local uploads while text-only generation
+remains available. Model availability and approximate cost values can change; the server's
+estimates are not a billing guarantee. The first valid `max_generations` value
+fixes the MCP server's cap for that server process; later calls cannot raise it,
+while Claude Code also applies its session-scoped pre-tool guard. Concurrent
+image writes are not coordinated.
 
 The Claude pre-tool generation counter is POSIX-only. It requires Python 3,
 `fcntl`, and no-follow directory-relative file opens; unsupported platforms deny
@@ -38,7 +47,7 @@ generation rather than running without the configured limit.
 
 ## Tests
 
-The root `just ci` tests the actual dependency-free `server/image_helpers.py`.
+The root `just ci` runs all non-integration Gemini tests against the locked runtime.
 It does not retrieve credentials or invoke a model.
 
 Live integration tests require an explicit opt-in and can incur API charges:

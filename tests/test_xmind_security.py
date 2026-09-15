@@ -136,6 +136,45 @@ class XMindArchiveSecurityTest(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         MODULE.safe_extract_archive(archive, root / f"output-{index}")
 
+    def test_post_extraction_failures_leave_existing_output_unchanged(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+
+            def fail_tree_generation(_topic):
+                raise RuntimeError("synthetic derived generation failure")
+
+            cases = (
+                ("invalid-content", b"{", None, json.JSONDecodeError),
+                ("derived-generation", self.minimal_content(), fail_tree_generation, RuntimeError),
+            )
+            for name, content, generation_failure, expected_error in cases:
+                with self.subTest(name=name):
+                    archive = self.make_archive(root, {"content.json": content})
+                    output = root / f"output-{name}"
+                    output.mkdir()
+                    (output / "marker").write_text("preserved")
+                    (output / "content.json").write_text("legacy content")
+                    before = {
+                        path.relative_to(output): path.read_bytes()
+                        for path in output.rglob("*")
+                        if path.is_file()
+                    }
+
+                    patcher = (
+                        mock.patch.object(MODULE, "extract_topic", side_effect=generation_failure)
+                        if generation_failure
+                        else mock.patch.object(MODULE, "extract_topic", wraps=MODULE.extract_topic)
+                    )
+                    with patcher, self.assertRaises(expected_error):
+                        MODULE.extract_xmind(str(archive), str(output))
+
+                    after = {
+                        path.relative_to(output): path.read_bytes()
+                        for path in output.rglob("*")
+                        if path.is_file()
+                    }
+                    self.assertEqual(after, before)
+
     def test_failed_commit_restores_existing_output(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

@@ -2,6 +2,8 @@
 name: scene-writing
 description: "This skill should be used when the user asks to \"write a scene\", \"generate a scene file\", \"create a scene from this node\", \"write the NPC file\", \"format the encounter\", or when converting XMind node content into Obsidian Markdown files for a DnD campaign. Covers all content types: scenes, NPCs, encounters, puzzles, locations, items."
 version: 0.1.0
+author: Christian Brandborg
+license: 0BSD
 ---
 
 # Scene Writing — XMind Node Content to Obsidian Markdown

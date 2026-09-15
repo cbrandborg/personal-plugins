@@ -73,7 +73,7 @@ aliases: []
 ```yaml
 ---
 tags: [scene, encounter, combat, boss, chapter-03, imported]
-aliases: [The Fallen Regent, The Ember Warden]
+aliases: [The Fallen Regent, The Old Warden]
 ---
 ```
 

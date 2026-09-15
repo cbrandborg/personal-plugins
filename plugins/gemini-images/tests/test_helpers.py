@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "server"))
 
 from image_helpers import (
-    _slugify, _next_variation, _next_sequence, _build_filename, _validate_model,
+    GenerationLimiter, _slugify, _next_variation, _next_sequence, _build_filename, _validate_model,
 )
 
 
@@ -148,3 +148,25 @@ class TestValidateModel:
     def test_close_but_wrong(self):
         result = _validate_model("gemini-3.1-flash-image")
         assert result is not None
+
+
+class TestGenerationLimiter:
+    def test_reserves_attempts_and_blocks_before_limit_is_exceeded(self):
+        limiter = GenerationLimiter()
+        assert limiter.reserve(1, 3) is None
+        assert limiter.reserve(2, 3) is None
+        assert "limit" in limiter.reserve(1, 3).lower()
+        assert limiter.attempt_count == 3
+
+    def test_rejects_invalid_counts_and_limits(self):
+        limiter = GenerationLimiter()
+        for count, maximum in ((0, 5), (1, 0), (True, 5), (1, True), (5, 4)):
+            assert limiter.reserve(count, maximum) is not None
+        assert limiter.attempt_count == 0
+
+    def test_cannot_raise_session_limit_after_first_reservation(self):
+        limiter = GenerationLimiter()
+        assert limiter.reserve(1, 2) is None
+        assert limiter.reserve(1, 100) is None
+        assert "limit" in limiter.reserve(1, 100).lower()
+        assert limiter.attempt_count == 2

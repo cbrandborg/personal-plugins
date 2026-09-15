@@ -1,6 +1,6 @@
 ---
 name: write-scene
-description: "Loads when the user is writing or improving player-facing atmospheric prose for a D&D campaign vault. Trigger phrases include: 'write a scene', 'write the read-aloud', 'write read-aloud', 'write the Danish read-aloud', 'give me a read-aloud', 'give me the read-aloud for', 'describe this place', 'describe [location] for my players', 'I need to describe', 'how should I write the description', 'how should I describe', 'help me write the atmospheric', 'help me write the [opening/description/text]', 'draft atmospheric prose', 'draft atmospheric', 'write atmosphere', 'draft the scene opening', 'write the encounter description', 'write a tense encounter opening', 'make this feel more [tense/eerie/dread/hopeful]', 'rework this scene', 'rework this scene opening', 'so it lands with more dread'. Also triggers whenever the user wants to produce Danish read-aloud text, atmospheric room or location descriptions, encounter openings, arrival scenes, or tavern descriptions — any request to write player-facing prose in a campaign vault. Provides principles, structure patterns, and template snippets for Danish read-aloud and English DM mechanics."
+description: "Use when writing or improving player-facing atmospheric prose for a D&D campaign vault: Danish read-aloud text, room or location descriptions, encounter and arrival openings, tavern scenes, or tonal rewrites. Provides scene structures, prose principles, language conventions, and templates that keep Danish narration separate from English DM mechanics."
 ---
 
 # Writing Scenes

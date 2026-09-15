@@ -1,95 +1,74 @@
 # xmind-campaign
 
-Convert XMind mind maps into structured Obsidian vaults for DnD campaigns.
+A portable Agent Plugins v1 package for extracting XMind maps and turning them into structured, audited Obsidian campaign notes and canvases.
 
-## Features
+## Included skills
 
-- Full XMind extraction handling both `attached` and `summary` (bracket) children
-- Rule-based content classification: scenes, NPCs, locations, items, encounters, puzzles
-- Image routing: NPC images → Characters/, places → Locations/, items → Items/
-- Danish read-aloud / English mechanics writing rules
-- Completeness auditing — every notes node and summary subtree must have output
-- Guard hook: asks before overwriting existing vault files
-- Obsidian Canvas generation
+- `extract` — safely extract a `.xmind` archive into `_extracted/` JSON and resources.
+- `audit-tree` — review every attached and summary node before generation.
+- `generate` — classify nodes and create Obsidian Markdown files with an import log.
+- `create-canvas` — create a linear Obsidian Canvas from chapter scene files.
+- `content-mapping` — map nodes to scenes, NPCs, locations, items, encounters, puzzles, or concepts.
+- `scene-writing` — format campaign content as Obsidian Markdown.
+- `completeness-rules` — prove every notes-bearing node and summary subtree is accounted for.
 
-## Prerequisites
+## Requirements
 
 - Python 3.10+
-- Obsidian vault with DnD campaign structure
+- An XMind file using the JSON-based `.xmind` format
+- An Obsidian vault when generating notes or canvases
 
-## Installation
+The extraction script stages output before replacement and rejects traversal, archive special files, portable-name collisions, files larger than 64 MiB, and archives larger than 512 MiB uncompressed.
 
-Copy or symlink this plugin directory, then enable it in Claude Code.
+## Install in Hermes
 
-## Usage
+Install the repository containing this plugin, then enable it:
 
-### 1. Extract
-
-```
-/xmind-campaign:extract
-```
-
-Point Claude at your `.xmind` file. Extracted JSON is saved to `_extracted/` next to the source file. Extraction is staged before replacing an existing output directory and rejects unsafe archive paths, special files, name collisions, members larger than 64 MiB, or archives larger than 512 MiB uncompressed.
-
-### 2. Audit
-
-```
-/xmind-campaign:audit-tree
+```bash
+hermes plugins install owner/repository --no-enable
+hermes plugins list
+hermes plugins enable xmind-campaign
 ```
 
-Review the full node tree before generating anything. Flags nodes with notes, images, and summary subtrees.
+For a local checkout, symlink or copy this directory into `$HERMES_HOME/plugins/xmind-campaign`, then enable `xmind-campaign`. Use `skills_list` to discover the qualified skill names and `skill_view` to load one.
 
-### 3. Generate
+Validate a checkout with:
 
-```
-/xmind-campaign:generate
-```
-
-Processes branch-by-branch, classifies content, writes scene/NPC/location/item files to the vault. Runs completeness audit automatically.
-
-### 4. Create Canvas
-
-```
-/xmind-campaign:create-canvas
+```bash
+hermes plugins doctor /path/to/xmind-campaign --ci
 ```
 
-Generates an Obsidian Canvas JSON linking all scenes in a chapter.
+## Workflow
 
-## Settings
+1. Ask Hermes to use the `extract` skill on a `.xmind` file.
+2. Use `audit-tree` to inspect the complete extracted hierarchy.
+3. Use `generate` for one branch or all branches. Confirm classifications and existing-file decisions before writes.
+4. Use `create-canvas` for each generated chapter.
+5. Require the `completeness-rules` audit before declaring an import complete.
 
-The plugin remembers your last-used vault path per campaign. Settings are stored in `.claude/xmind-campaign.local.md`.
+Runtime skills refer to scripts through a resolved `<plugin-root>`: the directory containing `plugin.json`. They do not depend on provider-specific environment variables.
 
-## Vault Structure Expected
+## Expected vault structure
 
+```text
+Campaign Name/
+├── Chapters/
+│   └── XX - Name - Canvas/
+│       ├── Name.canvas
+│       └── Scenes/
+├── Characters/
+├── Locations/
+├── Items/
+├── Concepts/
+└── _import-log.md
 ```
-DnD/
-└── Campaign Name/
-    ├── CLAUDE.md
-    ├── Chapters/
-    │   └── XX - Name - Canvas/
-    │       ├── Name.canvas
-    │       └── Scenes/
-    ├── Characters/
-    ├── Locations/
-    ├── Items/
-    ├── Concepts/
-    └── _import-log.md
-```
 
-## Content Types & Folder Mapping
+| Content type | Output folder |
+| --- | --- |
+| Scene / encounter / puzzle | `Chapters/XX - Name - Canvas/Scenes/` |
+| NPC | `Characters/` |
+| Location | `Locations/` |
+| Item | `Items/` |
+| Concept / mechanic | `Concepts/` |
 
-| XMind Node Type | Obsidian Folder |
-|----------------|-----------------|
-| Scene / Encounter / Puzzle | Chapters/XX/Scenes/ |
-| NPC | Characters/ |
-| Location | Locations/ |
-| Item | Items/ |
-| Concept / Mechanic | Concepts/ |
-
-## Image Routing
-
-Images embedded in XMind nodes are routed based on node type:
-- NPC node → `Characters/`
-- Location node → `Locations/`
-- Item node → `Items/`
-- Ambiguous → ask user
+Images follow the classified node type. Ask before routing an ambiguous image or overwriting any existing file.

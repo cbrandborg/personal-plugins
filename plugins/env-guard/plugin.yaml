@@ -1,0 +1,7 @@
+name: env-guard
+version: 0.2.0
+description: "Best-effort guard against accidental reads and writes of protected .env files. Supports native Hermes tools and the existing Claude Code hook."
+author: Christian Brandborg
+license: 0BSD
+provides_hooks:
+  - pre_tool_call

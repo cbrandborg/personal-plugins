@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mattpocock-productivity",
+  "version": "0.1.4",
+  "description": "Matt Pocock's productivity skills, packaged as a portable Agent Plugin.",
+  "author": {
+    "name": "Matt Pocock",
+    "url": "https://github.com/mattpocock"
+  },
+  "homepage": "https://github.com/mattpocock/skills",
+  "repository": "https://github.com/cbrandborg/personal-plugins",
+  "license": "MIT",
+  "keywords": [
+    "productivity",
+    "skills",
+    "teaching",
+    "planning"
+  ]
+}

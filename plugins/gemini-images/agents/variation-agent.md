@@ -27,7 +27,7 @@ You create multiple variations of an image concept, evaluate them, and present a
 
 ## Setup
 
-1. Read `.claude/gemini-images.local.md` for settings.
+1. Read `.claude/gemini-images.local.md` for settings, including `max_generations` (default: `5`).
 2. If a style guide is configured, read it for brand constraints.
 3. Understand the user's prompt and what kind of variations would be most useful.
 
@@ -60,7 +60,11 @@ Same scene, different atmospheres:
 
 Use `generate_variations` if possible (efficient single call for reference-image-based work).
 
+For local reference images, pass the current project root as `allowed_input_root` by default. If an image is outside the project, use an external root only after explicit user confirmation; scope it to the narrowest directory containing the confirmed image, never `/` or the user's whole home directory.
+
 For prompt-only variations, make separate `generate_image` calls with intentionally varied prompts. Clearly differentiate each variation's prompt — don't rely on randomness.
+
+Pass the configured `max_generations` value on every `generate_image` and `generate_variations` call. Do not increase it during the session.
 
 ## Evaluation and Ranking
 

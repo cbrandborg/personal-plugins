@@ -8,8 +8,8 @@ Experimental campaign-authoring workflows for Obsidian vaults. The skills guide 
 - **Guides Danish / English read-aloud writing** with principles, patterns, and templates for scene prose and NPC voice.
 - **Structures brainstorming** — forces ≥5 options with tradeoffs before committing to one.
 - **Looks up D&D 5e rules** (monsters, spells, conditions, DCs, CRs) via Open5e and dnd5eapi.co whenever mechanics come up.
-- **Reviews scenes** against vault conventions via a proactive agent.
-- **Warns on canvas desync** via a PostToolUse hook.
+- **Reviews scenes** against vault conventions via a Claude Code proactive agent.
+- **Warns on canvas desync** via a Claude Code PostToolUse hook.
 
 ## Vault structure it expects
 
@@ -58,7 +58,7 @@ ancestor containing both `CLAUDE.md` and `Chapters/`. The canvas helper detects
 
 | Skill | Type | Use when |
 |---|---|---|
-| `vault-navigate` | knowledge | Auto-loads whenever working inside any D&D vault |
+| `vault-navigate` | knowledge | Load before working inside a D&D vault |
 | `scaffold-scene` | user-invoked | Creating a new scene file + canvas node |
 | `scaffold-chapter` | user-invoked | Creating a new chapter from scratch |
 | `scaffold-character` | user-invoked | Creating an NPC or PC file |
@@ -67,13 +67,13 @@ ancestor containing both `CLAUDE.md` and `Chapters/`. The canvas helper detects
 | `brainstorm` | user-invoked | Generating options before committing to a direction |
 | `dnd-lookup` | knowledge + scripts | Looking up D&D 5e rules, monsters, spells, DCs |
 
-Invoke user-invoked skills as slash commands: `/dm-kit:scaffold-scene 09 "Refugee Camp"`.
+In Claude Code, invoke user-facing skills as slash commands such as `/dm-kit:scaffold-scene 09 "Refugee Camp"`. Hermes plugin skills are explicit-only: use `skills_list` to discover their qualified names, then load the required workflow with `skill_view`.
 
-### Agent
+### Claude Code agent
 
 - **`scene-reviewer`** — proactive. Reviews a scene file for frontmatter, no-H1, language split, canvas sync, length, DM note format, wiki-links. Triggers after Write/Edit to scene files and on explicit review requests.
 
-### Hook
+### Claude Code hook
 
 - **`canvas-sync`** (PostToolUse on Write/Edit) — warns if a scene file just written is not referenced in the chapter canvas. Warning only, never blocks.
 
