@@ -35,6 +35,8 @@ EOF
   exit 1
 fi
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 endpoint="$1"
 query="$2"
 # Normalize query to lowercase kebab for slug attempt
@@ -48,19 +50,6 @@ if result=$(curl -sSfL "$direct" 2>/dev/null); then
   exit 0
 fi
 
-# Fallback: list endpoint and filter by name containing query
-curl -sSfL "$base" | python3 -c "
-import json, sys
-q = '$query'.lower()
-data = json.load(sys.stdin)
-results = data.get('results', [])
-matches = [r for r in results if q in r.get('name', '').lower() or q in r.get('index', '').lower()]
-if not matches:
-    print(f'No matches for \"{q}\" in {len(results)} entries at endpoint \"$endpoint\".')
-    sys.exit(1)
-print(f'Matches for \"{q}\":')
-for m in matches[:20]:
-    print(f\"  - {m.get('name', '?')}  (slug: {m.get('index', '?')})\")
-print()
-print(f\"Re-run with an exact slug to get details, e.g.:  $0 $endpoint {matches[0].get('index', '')}\")
-"
+# Fallback: list endpoint and filter by name containing query. Pass all shell
+# input as argv data to a static Python helper; never interpolate it into code.
+curl -sSfL "$base" | python3 "$SCRIPT_DIR/_dnd5eapi-filter.py" "$query" "$endpoint" "$0"

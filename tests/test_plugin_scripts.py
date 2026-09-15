@@ -1,5 +1,6 @@
 """Offline behavior checks for bundled scripts using synthetic vaults/files."""
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -59,6 +60,38 @@ class CanvasTest(unittest.TestCase):
         self.assertIn('no file node', check().stdout)
         self.assertEqual(self.add().returncode, 0)
         self.assertEqual(check().stdout, '')
+
+
+class Dnd5eApiQueryTest(unittest.TestCase):
+    def test_query_is_passed_as_data_not_python_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            sentinel = root / 'executed'
+            fake_bin = root / 'bin'
+            fake_bin.mkdir()
+            fake_curl = fake_bin / 'curl'
+            fake_curl.write_text(
+                '#!/usr/bin/env python3\n'
+                'import json, sys\n'
+                'url = sys.argv[-1]\n'
+                'if url.rstrip("/").count("/") > 5:\n'
+                '    raise SystemExit(22)\n'
+                'json.dump({"results": [{"name": "Goblin", "index": "goblin"}]}, sys.stdout)\n'
+            )
+            fake_curl.chmod(0o755)
+            query = f"'; __import__('pathlib').Path({str(sentinel)!r}).write_text('owned'); q='"
+            env = dict(os.environ, PATH=f"{fake_bin}:{os.environ['PATH']}")
+
+            result = subprocess.run(
+                ['bash', str(SCRIPTS / 'dnd5eapi-query.sh'), 'monsters', query],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('No matches for', result.stdout)
+            self.assertFalse(sentinel.exists(), result.stdout + result.stderr)
 
 
 class EnvGuardTest(unittest.TestCase):
