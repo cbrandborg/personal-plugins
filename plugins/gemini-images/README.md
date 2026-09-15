@@ -32,6 +32,10 @@ server's working directory, which may be the plugin directory rather than your
 project. Model availability and approximate cost values can change; the server's
 estimates are not a billing guarantee. Concurrent image writes are not coordinated.
 
+The Claude pre-tool generation counter is POSIX-only. It requires Python 3,
+`fcntl`, and no-follow directory-relative file opens; unsupported platforms deny
+generation rather than running without the configured limit.
+
 ## Tests
 
 The root `just ci` tests the actual dependency-free `server/image_helpers.py`.

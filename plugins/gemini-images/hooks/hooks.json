@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.sh",
-            "timeout": 10000
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.sh\"",
+            "timeout": 10
           }
         ]
       }
