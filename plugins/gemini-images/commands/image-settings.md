@@ -39,7 +39,7 @@ Write the settings to `.claude/gemini-images.local.md` with YAML frontmatter:
 ---
 default_model: gemini-3.1-flash-image-preview
 output_dir: ./gemini-assets/outputs
-style_guide_path: ~/Documents/vanirlabs/visual-identity/README.md
+style_guide_path: /path/to/style-guide.md
 max_generations: 5
 auto_refine_prompts: true
 ---

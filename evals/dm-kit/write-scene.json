@@ -1,18 +1,18 @@
 [
-  {"query": "write the Danish read-aloud opening for the gallows camp scene — the Scarred Templar has just spotted Decentra's pilgrim badge", "should_trigger": true},
-  {"query": "draft atmospheric prose for the party's arrival at Ravenholt Castle at dusk, the road winds up the cliff", "should_trigger": true},
-  {"query": "how should I write the description of the Ashcroft Farmstead barn — I want it eerie and wrong without explaining why", "should_trigger": true},
-  {"query": "give me a read-aloud for the moment the party enters the Raven Hill morgue, focus on smell and sound", "should_trigger": true},
-  {"query": "I need to describe the phylactery mirror chamber in chapter 8 — atmospheric, cold, alien", "should_trigger": true},
-  {"query": "write a tense encounter opening where Morgoth emerges from the treeline on the road to Ravenholt", "should_trigger": true},
-  {"query": "rework this scene opening so it lands with more dread — the one where the party finds the burned village", "should_trigger": true},
-  {"query": "help me write the atmospheric text for a tavern at night in chapter 2, standard D&D fantasy tavern but with plague undertones", "should_trigger": true},
+  {"query": "write the Danish read-aloud opening for the gallows camp scene — the Ashen Sentinel has spotted Elira's pilgrim badge", "should_trigger": true},
+  {"query": "draft atmospheric prose for the party's arrival at Greyhaven Castle at dusk", "should_trigger": true},
+  {"query": "describe the Greenfield Farmstead barn — eerie and wrong without explaining why", "should_trigger": true},
+  {"query": "give me a read-aloud for the moment the party enters the Northwatch morgue", "should_trigger": true},
+  {"query": "describe the mirror chamber in chapter 8 — atmospheric, cold, alien", "should_trigger": true},
+  {"query": "write a tense encounter opening where Vargan emerges from the treeline on the road to Greyhaven", "should_trigger": true},
+  {"query": "rework this scene opening so it lands with more dread — the party finds a burned village", "should_trigger": true},
+  {"query": "help me write atmospheric text for a tavern at night in chapter 2", "should_trigger": true},
   {"query": "create a new scene file for the cathedral approach", "should_trigger": false},
   {"query": "brainstorm 8 options for how chapter 10 could open", "should_trigger": false},
   {"query": "review the gallows camp scene for convention issues", "should_trigger": false},
-  {"query": "what's the CR of the creatures in this encounter", "should_trigger": false},
+  {"query": "what is the CR of the creatures in this encounter", "should_trigger": false},
   {"query": "create a new NPC for the tavernkeeper in chapter 2", "should_trigger": false},
   {"query": "give this NPC a distinct speaking style and mannerism", "should_trigger": false},
   {"query": "what chapters does this vault contain", "should_trigger": false},
-  {"query": "what's the standard DC for a moderate perception check", "should_trigger": false}
+  {"query": "what is the standard DC for a moderate perception check", "should_trigger": false}
 ]

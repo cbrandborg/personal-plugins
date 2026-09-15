@@ -23,7 +23,7 @@ Generate a `.canvas` file for a chapter, linking all scene files in narrative or
 
 3. **Determine vault prefix**
    - The canvas requires vault-relative paths
-   - Construct from vault root: e.g. `DnD/The Plague of Myrkul/Chapters/01 - The Arrival - Canvas`
+   - Construct from vault root: e.g. `DnD/The Ember Crown/Chapters/01 - The Arrival - Canvas`
    - The vault root base is derived from settings. Ask user to confirm the vault name if unclear.
 
 4. **Run canvas generator**

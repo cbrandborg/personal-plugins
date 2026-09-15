@@ -17,17 +17,17 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh
 
 It prints the absolute path of the nearest directory containing both `CLAUDE.md` and `Chapters/`, or exits 1 if not inside any vault.
 
-Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Plague of Myrkul*, *The Fractured Crown*, *The Bounty of Dunbar*, or any future campaign.
+Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Ember Crown*, *The Shattered Compass*, *The Lost Expedition*, or any future campaign.
 
 ### CRITICAL: preserve the CWD path style
 
-Some users have the same vault mounted at multiple absolute roots (e.g. Google Drive at `~/My Drive/sync/private-obsidian/DnD/...` AND locally at `~/Documents/private-obsidian/DnD/...`). These are DIFFERENT absolute paths that refer to the same files.
+Some users have the same vault mounted at multiple absolute roots (e.g. cloud storage at `~/Cloud/campaign-vaults/DnD/...` and locally at `~/Documents/campaign-vaults/DnD/...`). These are different absolute paths that refer to the same files.
 
 **Always use the path that `detect-vault.sh` returns**, because it walks up from the literal `$PWD` without resolving symlinks. Never substitute a different absolute root even if you believe it's equivalent. All file Writes, Edits, and Reads must stay under that exact returned path.
 
 Why this matters: the `canvas-sync-hook` and Claude Code's own path validation compare absolute paths. A Write to the Documents mirror while CWD is the Drive mirror will look like a file outside the project root and may trigger false warnings or blocks.
 
-Rule of thumb: if `pwd` prints `~/My Drive/.../The Plague of Myrkul/Ideas`, every path you use must start with `~/My Drive/.../The Plague of Myrkul/`, not `~/Documents/.../The Plague of Myrkul/`. If Claude Code offers additional working directories, **ignore them** — always use the one matching `detect-vault.sh`'s output.
+Rule of thumb: if `pwd` prints `~/Cloud/.../The Ember Crown/Ideas`, every path you use must start with `~/Cloud/.../The Ember Crown/`, not `~/Documents/.../The Ember Crown/`. If Claude Code offers additional working directories, **ignore them** — always use the one matching `detect-vault.sh`'s output.
 
 ## Read these first
 
@@ -89,7 +89,7 @@ Canvas nodes that reference files must have `height` between 250 and 600 px. Sma
 - `"6"` player choice / decision point
 
 ### Path quoting
-Chapter folders contain spaces and apostrophes (e.g. `02 - Durgan's Rest`). Always quote paths in shell commands.
+Chapter folders contain spaces and apostrophes (e.g. `02 - River's End`). Always quote paths in shell commands.
 
 ## Scene filename convention
 

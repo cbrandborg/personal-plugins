@@ -82,7 +82,7 @@ Brainstorm when:
 
 ## Example session
 
-> User: *"I need ideas for how chapter 10 opens. The party just left Ravenholt, they're riding to the Decaying Monastery, and I don't know what to put on the road."*
+> User: *"I need ideas for how chapter 10 opens. The party just left Greyhaven, they're riding to the ruined monastery, and I don't know what to put on the road."*
 
 **Step 1 (mode):** "Inline or grounded? A road-opening scene probably doesn't need mechanical grounding — inline means I pull from narrative craft rather than querying monster stats. Grounded would matter if you want specific creatures or environmental hazards with RAW DCs. Your call."
 
@@ -92,7 +92,7 @@ Brainstorm when:
 
 ### 1. The scarecrow that turns its head
 The party rides past a field with scarecrows. As they pass the last one, its head follows them. Nothing else. Don't explain.
-**Cost:** free — pure atmosphere.  **Signal:** the plague's reach extends past Ravenholt.  **Forecloses:** nothing — this can be a one-off.
+**Cost:** free — pure atmosphere.  **Signal:** the threat extends beyond Greyhaven.  **Forecloses:** nothing — this can be a one-off.
 
 ### 2. A child, alone
 A lone child sits on a stone by the road. Says her parents told her to wait here. Will not move. Has been there two days.
@@ -100,7 +100,7 @@ A lone child sits on a stone by the road. Says her parents told her to wait here
 
 ### 3. Bells in the distance
 They hear a monastery bell faintly on the wind. The road isn't close enough to any monastery to hear one. The bell stops when anyone looks at the horizon. Starts again when they don't.
-**Cost:** free atmosphere, builds toward chapter 10.  **Signal:** the Decaying Monastery is reaching out to them.  **Forecloses:** a quiet opening — this one is eerie.
+**Cost:** free atmosphere, builds toward chapter 10.  **Signal:** the ruined monastery is reaching out to them.  **Forecloses:** a quiet opening — this one is eerie.
 
 [...continue to 8-10]
 

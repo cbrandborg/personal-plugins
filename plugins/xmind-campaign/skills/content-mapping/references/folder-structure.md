@@ -4,7 +4,7 @@
 
 The vault root is the campaign folder, e.g.:
 ```
-/path/to/campaigns/The Plague of Myrkul/
+/path/to/campaigns/The Ember Crown/
 ```
 
 The plugin asks for this path at the start of each run. It is stored in settings for the campaign.
@@ -90,10 +90,10 @@ The plugin stores the last-used vault path in:
 Format:
 ```markdown
 ---
-last_vault: /path/to/campaigns/The Plague of Myrkul
+last_vault: /path/to/campaigns/The Ember Crown
 campaigns:
-  - name: The Plague of Myrkul
-    vault: /path/to/campaigns/The Plague of Myrkul
+  - name: The Ember Crown
+    vault: /path/to/campaigns/The Ember Crown
   - name: Curse of Strahd
     vault: /path/to/campaigns/Curse of Strahd
 ---

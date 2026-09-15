@@ -11,7 +11,7 @@ Create an NPC or PC file using the right template. Both live in `<VAULT>/Charact
 
 ## Arguments
 
-- `<name>` — the character's name, as it appears on the file (e.g. `"Marshall Garrick"`). Quote if it contains spaces.
+- `<name>` — the character's name, as it appears on the file (e.g. `"Marshal Rowan"`). Quote if it contains spaces.
 - `--type npc|pc` — **required**. Determines which template is used.
 - `--chapter <NN>` — optional. The chapter number where they're first met. Used for the `first-met` field.
 - `--faction ally|enemy|neutral|contested` — optional, NPC only. Defaults to `neutral` if not given.

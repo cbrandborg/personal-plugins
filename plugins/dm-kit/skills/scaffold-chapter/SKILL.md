@@ -12,7 +12,7 @@ Create a new chapter from scratch: folder, canvas file, Scenes/ directory, start
 ## Arguments
 
 - `<chapter-number>` — the numeric prefix (e.g. `10`, `11`). Use two digits.
-- `<chapter-name>` — the chapter title (e.g. `"Decaying Monastery"`, `"The Long Road"`). Quote if it contains spaces.
+- `<chapter-name>` — the chapter title (e.g. `"Ruined Observatory"`, `"The Long Road"`). Quote if it contains spaces.
 
 ## Execution steps
 

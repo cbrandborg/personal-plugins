@@ -79,7 +79,7 @@ Never open combat with "roll initiative." Give one beat of calm, then the disrup
 
 [Så bliver temperaturen koldere. Ikke gradvist. På én gang.]
 
-> **DM Note:** Roll initiative. Morgoth enters from the east tree line.
+> **DM Note:** Roll initiative. Vargan enters from the east tree line.
 ```
 
 ### Dialogue scene — **setup → voice → the line → space for PCs**

@@ -1,6 +1,6 @@
 [
   {"query": "What vault am I in right now?", "should_trigger": true},
-  {"query": "which campaign is this — is it the plague one or fractured crown?", "should_trigger": true},
+  {"query": "which campaign is this — is it the first vault or the second one?", "should_trigger": true},
   {"query": "Where are we? I just opened a terminal in this obsidian folder and I'm not sure which campaign I've got open", "should_trigger": true},
   {"query": "Show me the chapter folder for chapter 9 so I can see what scenes exist", "should_trigger": true},
   {"query": "How is this D&D vault structured? I keep forgetting where the Characters folder lives vs Chapters/", "should_trigger": true},
