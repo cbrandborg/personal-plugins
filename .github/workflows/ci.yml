@@ -1,4 +1,4 @@
-name: Validate marketplace
+name: Validate plugins and importer
 
 on:
   push:
@@ -17,7 +17,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Validate dual marketplaces, portable skills, and sync behavior
+      - name: Install offline test dependencies
+        run: python3.13 -m pip install -r requirements-dev.txt
+      - name: Validate manifests, imports, and offline plugin behavior
         run: |
           python3.13 scripts/skills.py validate
           python3.13 -m unittest discover -s tests -v
+          python3.13 -m pytest plugins/gemini-images/tests/test_helpers.py -q
+          python3.13 scripts/demo-import.py

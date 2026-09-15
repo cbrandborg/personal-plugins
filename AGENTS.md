@@ -1,6 +1,6 @@
-# Personal Plugins Marketplace
+# Personal Skill Imports and Plugins
 
-This repository is a Git-backed marketplace for **both Claude Code and Codex**.
+This repository packages imported skills and original workflows as plugins for **Claude Code and Codex**. Marketplace registries are installation metadata.
 
 `CLAUDE.md` is intentionally only a pointer to this file so both agents use the
 same project guidance.
@@ -47,10 +47,12 @@ just sync-skills --apply
 just validate
 ```
 
+Preserve upstream notices in the plugin bundle; source tracking alone is not attribution. The importer does not copy repository-level licenses automatically.
+
 The scheduled GitHub Action runs the same sync operation weekly. It compares
 each tracked skill separately, replaces only changed skill folders, and bumps a
 plugin's patch version once only when one or more of its skills actually
-changed; it then commits the reviewed-by-CI result to `main`.
+changed; it then runs offline checks and commits to `main`. Those checks are not human review of upstream instructions.
 
 ## Validation
 

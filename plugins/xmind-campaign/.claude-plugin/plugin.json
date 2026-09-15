@@ -1,10 +1,17 @@
 {
   "name": "xmind-campaign",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Convert XMind mind maps into structured Obsidian vaults for DnD campaigns. Handles full pipeline: extraction, classification, scene generation, completeness auditing, and Canvas creation.",
   "author": {
     "name": "priv",
     "email": ""
   },
-  "keywords": ["dnd", "obsidian", "xmind", "campaign", "ttrpg", "canvas"]
+  "keywords": [
+    "dnd",
+    "obsidian",
+    "xmind",
+    "campaign",
+    "ttrpg",
+    "canvas"
+  ]
 }

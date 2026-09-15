@@ -9,6 +9,7 @@ truth for installed skills.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import filecmp
 import hashlib
 import json
@@ -28,6 +29,75 @@ SOURCES = ROOT / "sources.json"
 LOCK = ROOT / "sources.lock.json"
 CLAUDE_MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
+
+
+_TRANSACTION_DEPTH = 0
+
+
+@contextmanager
+def repository_transaction():
+    """Prepare changes in isolation; roll back recoverable publication errors.
+
+    A single writer is required. This is not crash-atomic across multiple files.
+    Nested syncs share the outer transaction so a later source conflict cannot
+    leave earlier sources or their version metadata partially updated.
+    """
+    global _TRANSACTION_DEPTH
+    if _TRANSACTION_DEPTH:
+        yield
+        return
+    names = ("PLUGINS", "SOURCES", "LOCK", "CLAUDE_MARKETPLACE", "CODEX_MARKETPLACE")
+    originals = {name: globals()[name] for name in names}
+
+    def copy(source, destination):
+        if source.is_dir():
+            shutil.copytree(source, destination, symlinks=True)
+        elif source.exists():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+
+    def remove(path):
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        elif path.exists() or path.is_symlink():
+            path.unlink()
+
+    def digest(path):
+        if path.is_dir():
+            return tree_digest(path)
+        return path.read_bytes() if path.exists() else None
+
+    with tempfile.TemporaryDirectory(prefix="plugin-transaction-") as dirname:
+        stage = Path(dirname)
+        for name, original in originals.items():
+            copy(original, stage / "backup" / name)
+            copy(original, stage / "work" / name)
+        for name in names:
+            globals()[name] = stage / "work" / name
+        _TRANSACTION_DEPTH = 1
+        try:
+            yield
+        except BaseException:
+            raise
+        else:
+            changed = [name for name, original in originals.items()
+                       if digest(original) != digest(stage / "work" / name)]
+            attempted = []
+            try:
+                for name in changed:
+                    original = originals[name]
+                    attempted.append(name)
+                    remove(original)
+                    original.parent.mkdir(parents=True, exist_ok=True)
+                    copy(stage / "work" / name, original)
+            except BaseException:
+                for name in reversed(attempted):
+                    remove(originals[name])
+                    copy(stage / "backup" / name, originals[name])
+                raise
+        finally:
+            globals().update(originals)
+            _TRANSACTION_DEPTH = 0
 
 
 def load_json(path: Path) -> dict:
@@ -284,6 +354,13 @@ def bump_plugin(plugin: str, updates: list[dict]) -> str:
 
 
 def sync_source(source: dict, apply: bool) -> list[dict]:
+    if apply:
+        with repository_transaction():
+            return _sync_source(source, apply=True)
+    return _sync_source(source, apply=False)
+
+
+def _sync_source(source: dict, apply: bool) -> list[dict]:
     """Compare and optionally replace only changed individual skill directories."""
     plugin = source["plugin"]
     plugin_dir = PLUGINS / plugin
@@ -333,9 +410,7 @@ def sync_source(source: dict, apply: bool) -> list[dict]:
             if locked_digest is not None and target_digest not in {None, locked_digest}:
                 message = f"{source['id']}/{skill_name}: upstream and local content both changed"
                 print(f"{message}; refusing to overwrite")
-                if apply:
-                    raise ValueError(message)
-                continue
+                raise ValueError(message)
 
             print(f"{source['id']}/{skill_name}: changed ({commit[:12]})")
             update = {
@@ -390,6 +465,11 @@ def finalize_sync_updates(updates_by_plugin: dict[str, list[dict]]) -> None:
 
 
 def add(args: argparse.Namespace) -> int:
+    with repository_transaction():
+        return _add(args)
+
+
+def _add(args: argparse.Namespace) -> int:
     plugin = args.plugin
     if not valid_name(plugin):
         raise ValueError("plugin must be lowercase kebab-case and at most 63 characters")
@@ -421,10 +501,19 @@ def add(args: argparse.Namespace) -> int:
     updates = sync_source(source, apply=True)
     if updates:
         finalize_sync_updates({plugin: updates})
-    return validate()
+    if validate():
+        raise ValueError("import validation failed; no changes applied")
+    return 0
 
 
 def sync(args: argparse.Namespace) -> int:
+    if args.apply:
+        with repository_transaction():
+            return _sync(args)
+    return _sync(args)
+
+
+def _sync(args: argparse.Namespace) -> int:
     sources = load_json(SOURCES)
     updates_by_plugin: dict[str, list[dict]] = {}
     for source in sources["sources"]:
@@ -437,7 +526,9 @@ def sync(args: argparse.Namespace) -> int:
         print("Changes found. Re-run with --apply to vendor and release them.")
     else:
         finalize_sync_updates(updates_by_plugin)
-    return validate() if args.apply else 0
+    if args.apply and validate():
+        raise ValueError("sync validation failed; no changes applied")
+    return 0
 
 
 def skill_frontmatter(path: Path) -> dict | None:
@@ -491,7 +582,7 @@ def validate() -> int:
         for skill in sorted((plugin_dir / "skills").glob("*/SKILL.md")) if (plugin_dir / "skills").exists() else []:
             metadata = skill_frontmatter(skill)
             if not metadata or not metadata.get("name") or not metadata.get("description"):
-                errors.append(f"{skill.relative_to(ROOT)}: requires name and description frontmatter")
+                errors.append(f"{skill.relative_to(PLUGINS)}: requires name and description frontmatter")
 
     for source in load_json(SOURCES).get("sources", []):
         if source.get("plugin") not in claude_names:

@@ -1,10 +1,10 @@
 # dm-kit
 
-D&D campaign authoring toolkit for Obsidian vaults. Works across any campaign in the `DnD/` parent directory as long as the vault follows the structure below.
+Experimental campaign-authoring workflows for Obsidian vaults. The skills guide an agent; the scripts validate selected file operations. End-to-end agent behavior is not covered by the offline tests.
 
 ## What it does
 
-- **Scaffolds scenes, chapters, and characters** with the correct file layout and canvas integration. Canvas and scene file stay in sync automatically.
+- **Scaffolds scenes, chapters, and characters** with the correct file layout and canvas integration. The helper validates existing scene files and avoids duplicate nodes on retries.
 - **Guides Danish / English read-aloud writing** with principles, patterns, and templates for scene prose and NPC voice.
 - **Structures brainstorming** — forces ≥5 options with tradeoffs before committing to one.
 - **Looks up D&D 5e rules** (monsters, spells, conditions, DCs, CRs) via Open5e and dnd5eapi.co whenever mechanics come up.
@@ -31,9 +31,9 @@ Every campaign vault must have:
 └── Outdated/                      # Frozen archive
 ```
 
-Hard rules the plugin enforces:
+Conventions the skills ask the agent to follow:
 
-1. **Canvas + scene sync**: every scene file has a matching node in the chapter's `.canvas`. The `scaffold-scene` skill guarantees this; the `canvas-sync` hook warns on manual Writes that bypass it.
+1. **Canvas + scene sync**: every scene file has a matching node in the chapter's `.canvas`. The `scaffold-scene` skill instructs the agent to maintain this; the `canvas-sync` hook warns on manual Writes that bypass it.
 2. **Danish / English split**: player-facing prose in Danish, mechanics in English.
 3. **No `# Title` H1 in scene files**: Obsidian canvas cards use the filename as the label.
 4. **Canvas node heights 250–600**: smaller renders empty.
@@ -41,16 +41,16 @@ Hard rules the plugin enforces:
 
 ## Installation
 
-```bash
-# Option A: local development mode (recommended while iterating)
-claude --plugin-dir "~/My Drive/sync/private-obsidian/DnD/dm-kit"
+Use the [root installation instructions](../../README.md#install-a-bundle) with
+plugin name `dm-kit`. For local Claude development, from the repository root:
 
-# Option B: install to personal-plugins cache
-cp -r "~/My Drive/sync/private-obsidian/DnD/dm-kit" \
-      "~/.claude/plugins/cache/personal-plugins/dm-kit/0.1.0"
+```bash
+claude --plugin-dir "$PWD/plugins/dm-kit"
 ```
 
-After installation, `cd` into any D&D campaign vault (`DnD/The Plague of Myrkul`, `DnD/The Fractured Crown`, etc.) and start a Claude Code session. The plugin auto-detects the vault via the nearest `CLAUDE.md` that has a sibling `Chapters/` folder.
+Start the agent in your campaign vault. The navigation script detects the nearest
+ancestor containing both `CLAUDE.md` and `Chapters/`. The canvas helper detects
+`Chapters/` or `.obsidian/`, or accepts an explicit `--vault-root`.
 
 ## Components
 
@@ -102,15 +102,24 @@ None required for v1. The plugin is stateless and auto-detects the vault per ses
 
 ## Relationship to `xmind-campaign`
 
-`dm-kit` replaces the need for the older `xmind-campaign` plugin going forward. XMind → Obsidian migration is done. `xmind-campaign` will be retired after `dm-kit` is proven in 2–3 sessions. Keep both installed for now if you still need the old migration pipeline.
+`xmind-campaign` is the older, separate migration workflow. Keep it if you still
+need to migrate an XMind map; dm-kit is for ongoing authoring in an existing vault.
 
 ## Verification
 
-See the plan at `/Users/priv/.claude/plans/gleaming-doodling-tide.md` for the full end-to-end test checklist.
+See [testing and support](../../docs/testing.md). Offline tests cover missing
+scenes, repeated insertions, malformed canvases, path handling, and exact hook
+references. The helper replaces canvas JSON atomically and preserves existing
+nodes and edges. Use a single writer; simultaneous edits are not coordinated.
 
-Quick smoke test:
+For a manual script check from the repository root, create a scene in a disposable
+vault first, then run:
+
 ```bash
-cd "~/My Drive/sync/private-obsidian/DnD/The Plague of Myrkul/Ideas/"
-~/My Drive/sync/private-obsidian/DnD/dm-kit/scripts/detect-vault.sh
-# should print: ~/My Drive/sync/private-obsidian/DnD/The Plague of Myrkul
+python3 plugins/dm-kit/scripts/add-scene-to-canvas.py \
+  "/path/to/vault/Chapters/01 - Arrival/Arrival.canvas" \
+  "Chapters/01 - Arrival/Scenes/01 - Welcome.md" \
+  --vault-root "/path/to/vault"
 ```
+
+Repeating the command returns the existing node ID without changing the canvas.

@@ -27,4 +27,10 @@ validate:
 test:
     {{PYTHON}} -m unittest discover -s tests -v
 
-ci: validate test
+test-helpers:
+    {{PYTHON}} -m pytest plugins/gemini-images/tests/test_helpers.py -q
+
+demo:
+    {{PYTHON}} scripts/demo-import.py
+
+ci: validate test test-helpers demo

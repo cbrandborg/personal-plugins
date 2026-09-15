@@ -3,3 +3,6 @@
 *.pyc
 .DS_Store
 plugins/dm-kit-workspace/
+
+.venv/
+.pytest_cache/

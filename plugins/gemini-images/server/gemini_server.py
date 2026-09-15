@@ -28,31 +28,13 @@ _session_stats = {
     "last_model": None,
 }
 
-# Supported models and approximate per-image cost
-_SUPPORTED_MODELS = {
-    "gemini-2.5-flash-image": 0.039,
-    "gemini-3.1-flash-image-preview": 0.10,
-    "gemini-3-pro-image-preview": 0.19,
-}
-
-
-def _validate_model(model: str) -> str | None:
-    """Return an error JSON string if the model is not supported, else None."""
-    if model not in _SUPPORTED_MODELS:
-        return json.dumps({
-            "error": f"Unknown model: {model}. Supported models: {', '.join(_SUPPORTED_MODELS)}",
-        })
-    return None
-
-# 1Password secret reference for the API key.
-# Override with OP_GEMINI_API_KEY_REF env var if your vault/item differs.
-_OP_DEFAULT_REF = "op://Vanir Labs/GEMINI_IMAGE_CLI_KEY/credential"
+from image_helpers import (
+    _SUPPORTED_MODELS, _validate_model, _slugify,
+    _next_variation, _next_sequence, _build_filename,
+)
 
 # Resolved API key, cached after first lookup
 _api_key_cache: str | None = None
-
-# Variation letters
-_VARIATION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 def _resolve_api_key() -> str:
@@ -75,33 +57,34 @@ def _resolve_api_key() -> str:
         return key
 
     # 2. 1Password CLI
-    op_ref = os.environ.get("OP_GEMINI_API_KEY_REF", _OP_DEFAULT_REF)
-    try:
-        result = subprocess.run(
-            ["op", "read", op_ref],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            key = result.stdout.strip()
-            _api_key_cache = key
-            return key
-        else:
+    op_ref = os.environ.get("OP_GEMINI_API_KEY_REF")
+    if op_ref:
+        try:
+            result = subprocess.run(
+                ["op", "read", op_ref],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                key = result.stdout.strip()
+                _api_key_cache = key
+                return key
+            else:
+                print(
+                    f"[gemini-images] 1Password lookup failed: {result.stderr.strip()}",
+                    file=sys.stderr,
+                )
+        except FileNotFoundError:
             print(
-                f"[gemini-images] 1Password lookup failed: {result.stderr.strip()}",
+                "[gemini-images] 1Password CLI (op) not found, skipping.",
                 file=sys.stderr,
             )
-    except FileNotFoundError:
-        print(
-            "[gemini-images] 1Password CLI (op) not found, skipping.",
-            file=sys.stderr,
-        )
-    except subprocess.TimeoutExpired:
-        print(
-            "[gemini-images] 1Password CLI timed out.",
-            file=sys.stderr,
-        )
+        except subprocess.TimeoutExpired:
+            print(
+                "[gemini-images] 1Password CLI timed out.",
+                file=sys.stderr,
+            )
 
     # 3. .env file in plugin root
     env_file = Path(__file__).resolve().parent.parent / ".env"
@@ -123,67 +106,6 @@ def _resolve_api_key() -> str:
 
 def _client() -> genai.Client:
     return genai.Client(api_key=_resolve_api_key())
-
-
-def _slugify(text: str) -> str:
-    """Turn a short descriptive name into a filename slug.
-
-    Example: 'Cozy Cabin Sunset' -> 'cozy-cabin-sunset'
-    """
-    slug = text.lower().strip()
-    slug = re.sub(r"[^a-z0-9\s_-]", "", slug)
-    slug = re.sub(r"[\s_]+", "-", slug)
-    slug = re.sub(r"-+", "-", slug).strip("-")
-    return slug[:60] if slug else "image"
-
-
-def _next_variation(output_dir: Path, slug: str) -> str:
-    """Find the next available variation letter for a slug in output_dir.
-
-    If cozy-cabin-sunset-A.png and cozy-cabin-sunset-B.png exist,
-    returns 'C'.
-    """
-    existing = set()
-    for f in output_dir.iterdir():
-        match = re.match(rf"^{re.escape(slug)}-([A-Z])(?:-v\d+)?\.\w+$", f.name)
-        if match:
-            existing.add(match.group(1))
-
-    for letter in _VARIATION_LETTERS:
-        if letter not in existing:
-            return letter
-    return "Z"
-
-
-def _next_sequence(output_dir: Path, slug: str, variation: str) -> int | None:
-    """Find the next sequence number for an iteration on a specific variation.
-
-    If cozy-cabin-sunset-A.png exists, returns 2 (for -v2).
-    If cozy-cabin-sunset-A-v2.png exists, returns 3.
-    Returns None if this is the first generation (no -vN suffix needed).
-    """
-    base_pattern = rf"^{re.escape(slug)}-{re.escape(variation)}(?:-v(\d+))?\.\w+$"
-    max_seq = 0
-    for f in output_dir.iterdir():
-        match = re.match(base_pattern, f.name)
-        if match:
-            seq = int(match.group(1)) if match.group(1) else 1
-            max_seq = max(max_seq, seq)
-
-    return max_seq + 1 if max_seq > 0 else None
-
-
-def _build_filename(slug: str, variation: str, sequence: int | None, ext: str) -> str:
-    """Build a filename from components.
-
-    Examples:
-        cozy-cabin-sunset-A.png       (first generation)
-        cozy-cabin-sunset-A-v2.png    (first iteration)
-        cozy-cabin-sunset-B.png       (second variation)
-    """
-    if sequence and sequence > 1:
-        return f"{slug}-{variation}-v{sequence}.{ext}"
-    return f"{slug}-{variation}.{ext}"
 
 
 def _save_images(

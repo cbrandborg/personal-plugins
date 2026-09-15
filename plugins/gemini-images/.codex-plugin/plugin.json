@@ -1,6 +1,6 @@
 {
   "name": "gemini-images",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate and modify images using Google Gemini's image generation API.",
   "author": {
     "name": "Vanir Labs",
@@ -15,7 +15,12 @@
     "longDescription": "Prompt refinement, style guidance, and Gemini image-generation workflows.",
     "developerName": "Vanir Labs",
     "category": "Creative",
-    "capabilities": ["Read", "Write"],
-    "defaultPrompt": ["Create or refine an image-generation prompt."]
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Create or refine an image-generation prompt."
+    ]
   }
 }

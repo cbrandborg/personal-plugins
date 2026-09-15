@@ -39,7 +39,7 @@ Extract the contents of an XMind file into structured JSON for campaign import.
 6. **Load settings for vault path**
    - Read `~/.claude/xmind-campaign.local.md` if it exists
    - If a campaign matching the `.xmind` filename or directory is found, show the stored vault path and ask to confirm or change it
-   - Otherwise ask: "What is the path to the Obsidian vault for this campaign? (e.g. /Users/priv/Documents/private-obsidian/DnD/Campaign Name)"
+   - Otherwise ask: "What is the path to the Obsidian vault for this campaign? (e.g. /path/to/campaigns/Campaign Name)"
    - Save to settings file
 
 7. **Report**
