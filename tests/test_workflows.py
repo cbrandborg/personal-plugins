@@ -32,6 +32,43 @@ class WorkflowSafetyTest(unittest.TestCase):
         self.assertNotRegex(text, r"(?m)^\s*git push\s*$")
         self.assertNotRegex(text, r"(?m)^\s*git push\b[^\n]*(?:refs/heads/main|\bmain\b)")
 
+    def test_ci_runs_real_hermes_validation_and_security_scans(self):
+        text = (WORKFLOWS / "ci.yml").read_text()
+        self.assertIn(
+            "git -C /tmp/hermes-agent fetch --depth 1 origin "
+            "939e45c91d751fadd94dcd1b873ac3cb44846213",
+            text,
+        )
+        self.assertIn("uv sync --locked --project /tmp/hermes-agent --no-dev", text)
+        self.assertIn("hermes plugins doctor", text)
+        self.assertIn("pytest plugins/gemini-images/tests -m 'not integration'", text)
+        self.assertIn("unittest discover -s plugins/dm-kit/tests", text)
+        self.assertIn("unittest discover -s plugins/env-guard/tests", text)
+        self.assertIn(
+            "gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7",
+            text,
+        )
+        self.assertIn("pull-requests: read", text)
+        self.assertIn('GITLEAKS_ENABLE_COMMENTS: "false"', text)
+        self.assertIn(
+            "github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca",
+            text,
+        )
+        self.assertIn(
+            "github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca",
+            text,
+        )
+        self.assertIn("codeql:", text)
+        self.assertIn("if: github.event.repository.private == false", text)
+
+    def test_local_ci_runs_hermes_and_locked_gemini_checks(self):
+        text = (ROOT / "justfile").read_text()
+        self.assertIn("hermes plugins doctor", text)
+        self.assertIn("uv run --locked --project plugins/gemini-images", text)
+        self.assertIn("pytest plugins/gemini-images/tests -m 'not integration'", text)
+        self.assertIn("unittest discover -s plugins/dm-kit/tests", text)
+        self.assertIn("unittest discover -s plugins/env-guard/tests", text)
+
 
 if __name__ == "__main__":
     unittest.main()

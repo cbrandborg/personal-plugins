@@ -24,13 +24,20 @@ update-skills *FLAGS:
 validate:
     {{PYTHON}} scripts/skills.py validate
 
+hermes-validate:
+    @for plugin in plugins/*; do if [ -f "$plugin/plugin.json" ] || [ -f "$plugin/plugin.yaml" ]; then hermes plugins doctor "$plugin" --ci || exit 1; fi; done
+
 test:
     {{PYTHON}} -m unittest discover -s tests -v
 
-test-helpers:
-    {{PYTHON}} -m pytest plugins/gemini-images/tests/test_helpers.py -q
+test-plugins:
+    {{PYTHON}} -m unittest discover -s plugins/dm-kit/tests -v
+    {{PYTHON}} -m unittest discover -s plugins/env-guard/tests -v
+
+test-gemini:
+    uv run --locked --project plugins/gemini-images pytest plugins/gemini-images/tests -m 'not integration' -q
 
 demo:
     {{PYTHON}} scripts/demo-import.py
 
-ci: validate test test-helpers demo
+ci: validate hermes-validate test test-plugins test-gemini demo
