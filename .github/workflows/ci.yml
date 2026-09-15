@@ -55,7 +55,6 @@ jobs:
           python3.13 scripts/skills.py validate
           python3.13 -m unittest discover -s tests -v
           python3.13 -m unittest discover -s plugins/dm-kit/tests -v
-          python3.13 -m unittest discover -s plugins/env-guard/tests -v
           uv run --locked --project plugins/gemini-images \
             pytest plugins/gemini-images/tests -m 'not integration' -q
           python3.13 scripts/demo-import.py

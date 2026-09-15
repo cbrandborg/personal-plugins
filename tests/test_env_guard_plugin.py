@@ -13,7 +13,8 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1]
+PLUGIN_ROOT = ROOT / "plugins" / "env-guard"
 
 
 def load_plugin():

@@ -17,7 +17,7 @@ Set `PLUGIN_ROOT` for the active host first. In Hermes, run `PLUGIN_ROOT="$(cd "
 "$PLUGIN_ROOT/scripts/detect-vault.sh"
 ```
 
-It prints the absolute path of the nearest directory containing both `CLAUDE.md` and `Chapters/`, or exits 1 if not inside any vault.
+It prints the absolute path of the nearest recognized campaign root containing `Chapters/`, or exits 1 if not inside any vault.
 
 Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Ember Crown*, *The Shattered Compass*, *The Lost Expedition*, or any future campaign.
 
@@ -35,7 +35,7 @@ Rule of thumb: if `pwd` prints `~/Cloud/.../The Ember Crown/Ideas`, every path y
 
 Once you know the vault root, read in this order for any task that touches campaign content:
 
-1. **`<vault>/CLAUDE.md`** — conventions specific to this vault (language split, color codes, etc.). Usually very similar across vaults but may carry campaign-specific notes.
+1. Apply project instructions already supplied by the active host. Do not independently load hidden host-instruction files.
 2. **`<vault>/_Campaign Overview.md`** — the live state snapshot. Who the party is, where they are, what threads are active. This is the single source of truth for current state.
 3. **`<vault>/Campaign_Summary_Updated.md`** (if present) — detailed play-by-play history.
 
@@ -45,7 +45,6 @@ For finale or major planning work, also read `<vault>/Ideas/` for brainstorms an
 
 ```
 <vault>/
-├── CLAUDE.md                      # Vault conventions
 ├── _Campaign Overview.md          # Live state (read first for current-state tasks)
 ├── Campaign_Summary_Updated.md    # History
 ├── Chapters/

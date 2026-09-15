@@ -32,7 +32,6 @@ test:
 
 test-plugins:
     {{PYTHON}} -m unittest discover -s plugins/dm-kit/tests -v
-    {{PYTHON}} -m unittest discover -s plugins/env-guard/tests -v
 
 test-gemini:
     uv run --locked --project plugins/gemini-images pytest plugins/gemini-images/tests -m 'not integration' -q

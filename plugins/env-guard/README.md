@@ -48,6 +48,5 @@ guard. It covers Hermes `read_file`, `write_file`, `patch`, `search_files`, and
 ```
 
 Requires Python 3. Claude hook configuration remains in `hooks/hooks.json` and
-uses the same matching logic as the native Hermes guard. Plugin-local regressions
-run with `python3 -m unittest discover -s tests -v`; repository regressions run
-with `just ci` at the repository root.
+uses the same matching logic as the native Hermes guard. Run regressions from
+the repository root with `python3 -m unittest discover -s tests -v` or `just ci`.

@@ -43,7 +43,6 @@ class WorkflowSafetyTest(unittest.TestCase):
         self.assertIn("hermes plugins doctor", text)
         self.assertIn("pytest plugins/gemini-images/tests -m 'not integration'", text)
         self.assertIn("unittest discover -s plugins/dm-kit/tests", text)
-        self.assertIn("unittest discover -s plugins/env-guard/tests", text)
         self.assertIn(
             "gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7",
             text,
@@ -67,7 +66,6 @@ class WorkflowSafetyTest(unittest.TestCase):
         self.assertIn("uv run --locked --project plugins/gemini-images", text)
         self.assertIn("pytest plugins/gemini-images/tests -m 'not integration'", text)
         self.assertIn("unittest discover -s plugins/dm-kit/tests", text)
-        self.assertIn("unittest discover -s plugins/env-guard/tests", text)
 
 
 if __name__ == "__main__":
