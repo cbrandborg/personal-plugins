@@ -15,17 +15,156 @@ Output:
 
 import json
 import os
+from pathlib import Path, PurePosixPath
+import shutil
+import stat
 import sys
+import tempfile
+import unicodedata
+import uuid
 import zipfile
+
+MAX_ARCHIVE_FILES = 10_000
+MAX_MEMBER_BYTES = 64 * 1024 * 1024
+MAX_TOTAL_BYTES = 512 * 1024 * 1024
+COPY_CHUNK_BYTES = 1024 * 1024
+WINDOWS_RESERVED_NAMES = {
+    "CON", "PRN", "AUX", "NUL",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+def _safe_member_parts(info: zipfile.ZipInfo) -> tuple[str, ...]:
+    """Return normalized relative path parts or reject an unsafe member."""
+    if info.flag_bits & 0x1:
+        raise ValueError(f"encrypted archive member is not supported: {info.filename}")
+    name = info.filename.replace("\\", "/")
+    path = PurePosixPath(name)
+    if (
+        not name
+        or "\x00" in name
+        or path.is_absolute()
+        or any(part in {"", ".", ".."} for part in path.parts)
+        or (path.parts and ":" in path.parts[0])
+    ):
+        raise ValueError(f"unsafe archive member path: {info.filename}")
+    for part in path.parts:
+        normalized = unicodedata.normalize("NFC", part)
+        stem = normalized.split(".", 1)[0].upper()
+        if (
+            ":" in normalized
+            or normalized.endswith((" ", "."))
+            or stem in WINDOWS_RESERVED_NAMES
+        ):
+            raise ValueError(f"archive member is not portable: {info.filename}")
+    mode = (info.external_attr >> 16) & 0o170000
+    allowed_modes = {0, stat.S_IFDIR} if info.is_dir() else {0, stat.S_IFREG}
+    if mode not in allowed_modes:
+        raise ValueError(f"archive special files are not supported: {info.filename}")
+    return path.parts
+
+
+def safe_extract_archive(xmind_path: str | Path, output_dir: str | Path) -> None:
+    """Extract a bounded XMind archive without traversal or special files."""
+    requested_output = Path(output_dir).absolute()
+    if requested_output.is_symlink():
+        raise ValueError("output directory must not be a symlink")
+    requested_output.parent.mkdir(parents=True, exist_ok=True)
+    output = requested_output.parent.resolve() / requested_output.name
+    if output.is_symlink():
+        raise ValueError("output directory must not be a symlink")
+
+    with zipfile.ZipFile(xmind_path, "r") as archive:
+        entries = archive.infolist()
+        if len(entries) > MAX_ARCHIVE_FILES:
+            raise ValueError(f"archive contains more than {MAX_ARCHIVE_FILES} entries")
+
+        planned = []
+        seen = set()
+        kinds = {}
+        declared_total = 0
+        for info in entries:
+            parts = _safe_member_parts(info)
+            normalized = "/".join(parts)
+            collision_key = "/".join(
+                unicodedata.normalize("NFC", part).casefold() for part in parts
+            )
+            if collision_key in seen:
+                raise ValueError(f"portable archive member collision: {normalized}")
+            seen.add(collision_key)
+            kinds[collision_key] = info.is_dir()
+            if info.file_size > MAX_MEMBER_BYTES:
+                raise ValueError(f"archive member exceeds {MAX_MEMBER_BYTES} bytes: {normalized}")
+            declared_total += info.file_size
+            if declared_total > MAX_TOTAL_BYTES:
+                raise ValueError(f"archive exceeds {MAX_TOTAL_BYTES} uncompressed bytes")
+            planned.append((info, parts))
+
+        for key, is_directory in kinds.items():
+            parts = key.split("/")
+            for index in range(1, len(parts)):
+                ancestor = "/".join(parts[:index])
+                if ancestor in kinds and not kinds[ancestor]:
+                    raise ValueError(f"archive file/directory collision: {key}")
+            if not is_directory and any(other.startswith(f"{key}/") for other in kinds):
+                raise ValueError(f"archive file/directory collision: {key}")
+
+        with tempfile.TemporaryDirectory(
+            prefix=f".{output.name}.extract-", dir=output.parent
+        ) as staging_name:
+            staging = Path(staging_name)
+            actual_total = 0
+            for info, parts in planned:
+                target = staging.joinpath(*parts)
+                if info.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                member_total = 0
+                with archive.open(info, "r") as source, target.open("xb") as destination:
+                    while chunk := source.read(COPY_CHUNK_BYTES):
+                        member_total += len(chunk)
+                        actual_total += len(chunk)
+                        if member_total > MAX_MEMBER_BYTES or actual_total > MAX_TOTAL_BYTES:
+                            raise ValueError(
+                                f"archive expanded beyond configured limits: {info.filename}"
+                            )
+                        destination.write(chunk)
+
+            backup = output.parent / f".{output.name}.backup-{uuid.uuid4().hex}"
+            moved_existing = False
+            commit_complete = False
+            rollback_complete = False
+            try:
+                if output.exists():
+                    if not output.is_dir():
+                        raise ValueError("output path must be a directory")
+                    os.replace(output, backup)
+                    moved_existing = True
+                os.replace(staging, output)
+                commit_complete = True
+            except BaseException as commit_error:
+                if moved_existing and not output.exists() and backup.exists():
+                    try:
+                        os.replace(backup, output)
+                        rollback_complete = True
+                    except BaseException as rollback_error:
+                        raise RuntimeError(
+                            f"extraction commit and rollback failed; backup preserved at {backup}: "
+                            f"{rollback_error}"
+                        ) from commit_error
+                raise
+            finally:
+                if backup.exists() and (commit_complete or rollback_complete):
+                    shutil.rmtree(backup)
 
 
 def extract_xmind(xmind_path: str, output_dir: str):
     """Extract and parse an XMind file."""
-    os.makedirs(output_dir, exist_ok=True)
-
-    # XMind files are ZIP archives
-    with zipfile.ZipFile(xmind_path, "r") as z:
-        z.extractall(output_dir)
+    # XMind files are ZIP archives. Extract only bounded regular files under
+    # the selected output directory; never trust member paths from the archive.
+    safe_extract_archive(xmind_path, output_dir)
 
     content_path = os.path.join(output_dir, "content.json")
     if not os.path.exists(content_path):

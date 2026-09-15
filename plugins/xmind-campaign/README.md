@@ -14,7 +14,7 @@ Convert XMind mind maps into structured Obsidian vaults for DnD campaigns.
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Obsidian vault with DnD campaign structure
 
 ## Installation
@@ -29,7 +29,7 @@ Copy or symlink this plugin directory, then enable it in Claude Code.
 /xmind-campaign:extract
 ```
 
-Point Claude at your `.xmind` file. Extracted JSON is saved to `_extracted/` next to the source file.
+Point Claude at your `.xmind` file. Extracted JSON is saved to `_extracted/` next to the source file. Extraction is staged before replacing an existing output directory and rejects unsafe archive paths, special files, name collisions, members larger than 64 MiB, or archives larger than 512 MiB uncompressed.
 
 ### 2. Audit
 
