@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: personal-plugins-sync
@@ -16,10 +17,11 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+          ref: main
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.13"
       - name: Sync registered upstream skills and bump changed plugin versions
@@ -32,14 +34,31 @@ jobs:
           python3.13 -m unittest discover -s tests -v
           python3.13 -m pytest plugins/gemini-images/tests/test_helpers.py -q
           python3.13 scripts/demo-import.py
-      - name: Commit and push updated skills
+      - name: Commit and open or update review pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet; then
+          if [[ -z "$(git status --porcelain --untracked-files=all -- plugins sources.lock.json)" ]]; then
             echo "No upstream content changes to publish."
             exit 0
           fi
+          branch="automation/sync-skills"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
           git add plugins sources.lock.json
           git commit -m "chore(skills): weekly upstream sync"
-          git push
+          git push --force-with-lease origin "HEAD:refs/heads/automation/sync-skills"
+          pr_number="$(gh pr list --state open --head "$branch" --base main \
+            --repo "$GITHUB_REPOSITORY" --json number --jq '.[0].number // empty')"
+          if [[ -n "$pr_number" ]]; then
+            gh pr edit "$pr_number" --repo "$GITHUB_REPOSITORY" \
+              --title "chore(skills): review weekly upstream sync" \
+              --body "Automated upstream refresh. Review all changed skill instructions before merging."
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$branch" \
+              --title "chore(skills): review weekly upstream sync" \
+              --body "Automated upstream refresh. Review all changed skill instructions before merging."
+          fi
