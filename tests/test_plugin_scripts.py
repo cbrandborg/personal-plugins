@@ -66,6 +66,12 @@ class CanvasTest(unittest.TestCase):
 
 
 class Dnd5eApiQueryTest(unittest.TestCase):
+    def test_network_responses_are_not_piped_into_interpreters(self):
+        for name in ("dnd5eapi-query.sh", "open5e-query.sh"):
+            with self.subTest(script=name):
+                text = (SCRIPTS / name).read_text()
+                self.assertNotRegex(text, r"curl[^\n]*\|\s*python")
+
     def test_query_is_passed_as_data_not_python_source(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

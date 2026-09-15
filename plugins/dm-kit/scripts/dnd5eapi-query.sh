@@ -44,12 +44,15 @@ slug=$(printf '%s' "$query" | tr '[:upper:] ' '[:lower:]-')
 
 base="https://www.dnd5eapi.co/api/${endpoint}"
 direct="${base}/${slug}"
+response_file=$(mktemp)
+trap 'rm -f "$response_file"' EXIT
 
-if result=$(curl -sSfL "$direct" 2>/dev/null); then
-  printf '%s' "$result" | python3 -m json.tool
+if curl -sSfL "$direct" >"$response_file" 2>/dev/null; then
+  python3 -m json.tool "$response_file"
   exit 0
 fi
 
 # Fallback: list endpoint and filter by name containing query. Pass all shell
 # input as argv data to a static Python helper; never interpolate it into code.
-curl -sSfL "$base" | python3 "$SCRIPT_DIR/_dnd5eapi-filter.py" "$query" "$endpoint" "$0"
+curl -sSfL "$base" >"$response_file"
+python3 "$SCRIPT_DIR/_dnd5eapi-filter.py" "$query" "$endpoint" "$0" <"$response_file"
