@@ -1,7 +1,7 @@
 """Integration tests that hit the real Gemini API.
 
-Run with:   uv run pytest tests/test_integration.py
-Skip with:  uv run pytest -m "not integration"
+Run with:   uv run --locked pytest tests/test_integration.py
+Skip with:  uv run --locked pytest -m "not integration"
 """
 
 import base64

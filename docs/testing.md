@@ -2,8 +2,13 @@
 
 ## Offline checks
 
-Install `requirements-dev.txt` into a Python 3.13+ virtual environment, then run
-`PYTHON=python just ci`. CI runs the same checks:
+Install the hash-locked development dependencies into a Python 3.13+ virtual
+environment, then run `PYTHON=python just ci`. CI runs the same checks:
+
+```bash
+python -m pip install --require-hashes -r requirements-dev.lock
+PYTHON=python just ci
+```
 
 - Structural validation of both installation registries, manifests, and skill frontmatter.
 - Actual importer regression tests: selective updates, local edits, conflict-only checks,
@@ -13,6 +18,7 @@ Install `requirements-dev.txt` into a Python 3.13+ virtual environment, then run
 - Env-guard checks using synthetic files: direct paths, symlinks, nested shells,
   and allowed template paths. These do not establish comprehensive access control.
 - Gemini tests importing the production helper module, without SDK dependencies or API calls.
+- Gemini `uv.lock` freshness plus a locked runtime import smoke test using uv 0.5.10.
 - A real CLI import/update example using temporary local Git repositories.
 
 Tests do not modify installed plugins. Local CLI examples validate generated files;

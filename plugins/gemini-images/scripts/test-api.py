@@ -10,7 +10,7 @@ Calls the actual Gemini API to verify:
 
 Usage:
     cd plugins/gemini-images
-    uv run python scripts/test-api.py
+    uv run --locked python scripts/test-api.py
 """
 
 import io

@@ -14,10 +14,10 @@ installation cache that may be replaced on upgrade.
 
 ## Run the server
 
-Requires Python 3.13 and `uv`:
+Requires Python 3.13 and `uv` 0.5.10:
 
 ```bash
-uv run --directory /absolute/path/to/personal-plugins/plugins/gemini-images \
+uv run --locked --directory /absolute/path/to/personal-plugins/plugins/gemini-images \
   python /absolute/path/to/personal-plugins/plugins/gemini-images/server/gemini_server.py
 ```
 
@@ -41,7 +41,7 @@ Live integration tests require an explicit opt-in and can incur API charges:
 
 ```bash
 cd plugins/gemini-images
-RUN_GEMINI_INTEGRATION=1 uv run pytest tests/test_integration.py
+RUN_GEMINI_INTEGRATION=1 uv run --locked pytest tests/test_integration.py
 ```
 
 Set credentials in the environment first. The standalone `scripts/test-api.py`
