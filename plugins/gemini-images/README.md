@@ -27,6 +27,16 @@ hosts is unverified. Configure absolute paths explicitly if your host does not
 provide that variable. Shared skills do not imply identical commands/hooks in
 both agents.
 
+Supported production image models:
+
+- `gemini-3.1-flash-lite-image` — default, lowest latency and cost
+- `gemini-3.1-flash-image` — general-purpose image generation and editing
+- `gemini-3-pro-image` — premium image generation and editing
+
+Gemini 2.5 Flash Image and the old Gemini 3 image preview IDs are not supported.
+Check Google's current model list before changing these IDs:
+https://ai.google.dev/gemini-api/docs/models
+
 Pass absolute input/output paths. Local uploads (`reference_image_path`,
 `modify_image.image_path`, and `generate_variations.image_path`) also require an
 absolute `allowed_input_root`. The server rejects inputs outside that root,

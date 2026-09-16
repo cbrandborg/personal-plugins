@@ -9,9 +9,9 @@ _VARIATION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Supported models and approximate per-image cost
 _SUPPORTED_MODELS = {
-    "gemini-2.5-flash-image": 0.039,
-    "gemini-3.1-flash-image-preview": 0.10,
-    "gemini-3-pro-image-preview": 0.19,
+    "gemini-3.1-flash-lite-image": 0.034,
+    "gemini-3.1-flash-image": 0.067,
+    "gemini-3-pro-image": 0.134,
 }
 
 

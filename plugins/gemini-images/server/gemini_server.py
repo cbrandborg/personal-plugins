@@ -281,7 +281,7 @@ def _track(model: str, count: int = 1) -> None:
 def generate_image(
     prompt: str,
     name: str,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     aspect_ratio: str = "1:1",
     reference_image_path: str | None = None,
     output_dir: str = _DEFAULT_OUTPUT_DIR,
@@ -294,8 +294,8 @@ def generate_image(
         prompt: Detailed text description of the image to generate.
         name: Short descriptive name for the image (3-5 words, used in filename).
               Example: 'cozy cabin sunset' -> saves as cozy-cabin-sunset-A.png
-        model: Gemini model to use. Options: gemini-2.5-flash-image,
-               gemini-3.1-flash-image-preview, gemini-3-pro-image-preview.
+        model: Gemini model to use. Options: gemini-3.1-flash-lite-image,
+               gemini-3.1-flash-image, gemini-3-pro-image.
         aspect_ratio: Image aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3).
         reference_image_path: Optional path to a reference image for style/composition guidance.
         output_dir: Directory to save the generated image.
@@ -367,7 +367,7 @@ def modify_image(
     image_path: str,
     instruction: str,
     name: str | None = None,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     output_dir: str = _DEFAULT_OUTPUT_DIR,
     max_generations: int = 5,
     allowed_input_root: str | None = None,
@@ -466,7 +466,7 @@ def generate_variations(
     name: str,
     count: int = 3,
     image_path: str | None = None,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     aspect_ratio: str = "1:1",
     output_dir: str = _DEFAULT_OUTPUT_DIR,
     max_generations: int = 5,

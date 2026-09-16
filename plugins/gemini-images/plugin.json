@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "gemini-images",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Generate and modify images with Google Gemini using portable agent skills and an MCP server.",
   "author": {
     "name": "Christian Brandborg",

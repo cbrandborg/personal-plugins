@@ -16,16 +16,16 @@ Check if `.claude/gemini-images.local.md` exists in the current project. If it d
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `default_model` | `gemini-3.1-flash-image-preview` | Model for generation (~$0.10/img) |
+| `default_model` | `gemini-3.1-flash-lite-image` | Model for generation (~$0.034/1K image) |
 | `output_dir` | `./gemini-assets/outputs` | Where to save images |
 | `style_guide_path` | (none) | Path to brand/visual identity guide |
 | `max_generations` | `5` | Cost control — max generations per session |
 | `auto_refine_prompts` | `true` | Auto-apply prompt best practices |
 
 Available models and pricing:
-- `gemini-2.5-flash-image` — $0.039/image, fastest
-- `gemini-3.1-flash-image-preview` — ~$0.10/image, better quality
-- `gemini-3-pro-image-preview` — ~$0.19/image, best quality
+- `gemini-3.1-flash-lite-image` — ~$0.034 per 1K image, fastest and default
+- `gemini-3.1-flash-image` — ~$0.067 per 1K image, general-purpose
+- `gemini-3-pro-image` — ~$0.134 per image, premium quality
 
 ## Step 3: Collect changes
 
@@ -37,7 +37,7 @@ Write the settings to `.claude/gemini-images.local.md` with YAML frontmatter:
 
 ```markdown
 ---
-default_model: gemini-3.1-flash-image-preview
+default_model: gemini-3.1-flash-lite-image
 output_dir: ./gemini-assets/outputs
 style_guide_path: /path/to/style-guide.md
 max_generations: 5

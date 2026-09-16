@@ -13,7 +13,7 @@ If `.claude/gemini-images.local.md` exists in the current project, read it and s
 
 | Setting | Default | Description |
 |---|---|---|
-| `default_model` | `gemini-3.1-flash-image-preview` | Model used for generation |
+| `default_model` | `gemini-3.1-flash-lite-image` | Model used for generation |
 | `output_dir` | `./gemini-assets/outputs` | Directory for generated images |
 | `style_guide_path` | none | Brand or visual-identity guide |
 | `max_generations` | `5` | Maximum billable attempts per MCP server session |
@@ -21,9 +21,9 @@ If `.claude/gemini-images.local.md` exists in the current project, read it and s
 
 Supported models:
 
-- `gemini-2.5-flash-image`
-- `gemini-3.1-flash-image-preview`
-- `gemini-3-pro-image-preview`
+- `gemini-3.1-flash-lite-image`
+- `gemini-3.1-flash-image`
+- `gemini-3-pro-image`
 
 Pricing and model availability can change; do not present estimates as guaranteed billing rates.
 
@@ -37,7 +37,7 @@ Write `.claude/gemini-images.local.md` with YAML frontmatter in this form:
 
 ```markdown
 ---
-default_model: gemini-3.1-flash-image-preview
+default_model: gemini-3.1-flash-lite-image
 output_dir: ./gemini-assets/outputs
 style_guide_path: /absolute/path/to/style-guide.md
 max_generations: 5

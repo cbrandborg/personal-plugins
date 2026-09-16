@@ -1,6 +1,6 @@
 [project]
 name = "gemini-images"
-version = "0.1.1"
+version = "0.2.0"
 license = "0BSD"
 license-files = ["LICENSE"]
 description = "MCP server for Gemini image generation"

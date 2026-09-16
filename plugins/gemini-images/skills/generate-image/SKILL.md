@@ -19,7 +19,7 @@ For any reference upload, pass the current project root as `allowed_input_root` 
 
 Read `.claude/gemini-images.local.md` in the current project if it exists. Use these settings:
 
-- `default_model` (default: `gemini-3.1-flash-image-preview`)
+- `default_model` (default: `gemini-3.1-flash-lite-image`)
 - `output_dir` (default: `./gemini-assets/outputs`)
 - `style_guide_path` (optional)
 - `max_generations` (default: `5`)

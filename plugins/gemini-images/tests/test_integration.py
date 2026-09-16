@@ -18,7 +18,7 @@ class TestGenerateImage:
     def test_basic_generation(self, client):
         """Generate an image and verify we get valid image data back."""
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents="A simple red circle on a white background",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
@@ -36,7 +36,7 @@ class TestGenerateImage:
     def test_pil_can_decode_response(self, client):
         """Verify PIL can open the image data from the API."""
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents="A solid blue square",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
@@ -56,7 +56,7 @@ class TestGenerateImage:
     def test_save_as_png(self, client, tmp_path):
         """Verify we can save the response as a real PNG file."""
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents="A green triangle on white background",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
@@ -85,7 +85,7 @@ class TestModifyImage:
         """Generate an image, then modify it."""
         # First generate
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents="A red circle on white background",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
@@ -106,7 +106,7 @@ class TestModifyImage:
         # Now modify
         image_data = base64.b64encode(source.read_bytes()).decode("utf-8")
         mod_response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents=[
                 types.Part(
                     inline_data=types.Blob(mime_type="image/png", data=image_data)
@@ -130,7 +130,7 @@ class TestAspectRatios:
     def test_aspect_ratio(self, client, ratio):
         """Verify various aspect ratios produce images."""
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents="A solid blue rectangle",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
@@ -147,8 +147,9 @@ class TestAspectRatios:
 
 class TestModels:
     @pytest.mark.parametrize("model", [
-        "gemini-2.5-flash-image",
-        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-image",
+        "gemini-3.1-flash-image",
+        "gemini-3-pro-image",
     ])
     def test_supported_model_generates(self, client, model):
         """Verify each supported model can generate an image."""

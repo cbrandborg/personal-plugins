@@ -1,6 +1,6 @@
 {
   "name": "gemini-images",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Generate and modify images using Google Gemini's image generation API.",
   "author": {
     "name": "Christian Brandborg",

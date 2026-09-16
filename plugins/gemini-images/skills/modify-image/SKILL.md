@@ -19,7 +19,7 @@ Ask what the user wants changed if their instruction is incomplete. Common edits
 
 ## 3. Load project settings
 
-Read `.claude/gemini-images.local.md` in the current project if it exists. Use its `default_model`, `output_dir`, and `max_generations`; otherwise default to `gemini-3.1-flash-image-preview`, `./gemini-assets/outputs`, and `5`.
+Read `.claude/gemini-images.local.md` in the current project if it exists. Use its `default_model`, `output_dir`, and `max_generations`; otherwise default to `gemini-3.1-flash-lite-image`, `./gemini-assets/outputs`, and `5`.
 
 ## 4. Refine and confirm the instruction
 

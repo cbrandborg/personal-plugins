@@ -37,7 +37,7 @@ def test_generate_image(client: genai.Client, output_dir: Path) -> Path:
     """Test basic image generation."""
     print("\n[Test 1] Generate image...")
     response = client.models.generate_content(
-        model="gemini-3.1-flash-image-preview",
+        model="gemini-3.1-flash-lite-image",
         contents="A simple red circle on a white background, minimal, clean",
         config=types.GenerateContentConfig(
             response_modalities=["TEXT", "IMAGE"],
@@ -79,7 +79,7 @@ def test_modify_image(client: genai.Client, source_path: Path, output_dir: Path)
 
     image_data = base64.b64encode(source_path.read_bytes()).decode("utf-8")
     response = client.models.generate_content(
-        model="gemini-3.1-flash-image-preview",
+        model="gemini-3.1-flash-lite-image",
         contents=[
             types.Part(
                 inline_data=types.Blob(mime_type="image/png", data=image_data)
@@ -119,13 +119,13 @@ def test_model_validation():
     # We can't easily import the server (it starts mcp.run()), so just
     # test the supported models list concept
     supported = {
-        "gemini-2.5-flash-image",
-        "gemini-3.1-flash-image-preview",
-        "gemini-3-pro-image-preview",
+        "gemini-3.1-flash-lite-image",
+        "gemini-3.1-flash-image",
+        "gemini-3-pro-image",
     }
     assert "gemini-2.0-flash-preview-image-generation" not in supported
-    assert "gemini-3.1-flash-image-preview" in supported
-    print("  Known model accepted: gemini-3.1-flash-image-preview")
+    assert "gemini-3.1-flash-lite-image" in supported
+    print("  Known model accepted: gemini-3.1-flash-lite-image")
     print("  Unknown model rejected: gemini-2.0-flash-preview-image-generation")
     print("  PASS")
 
@@ -135,7 +135,7 @@ def test_aspect_ratios(client: genai.Client):
     print("\n[Test 4] Aspect ratios...")
     for ratio in ["1:1", "16:9", "9:16"]:
         response = client.models.generate_content(
-            model="gemini-3.1-flash-image-preview",
+            model="gemini-3.1-flash-lite-image",
             contents=f"A solid blue square",
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
