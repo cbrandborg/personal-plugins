@@ -23,7 +23,7 @@
       "name": "gemini-images",
       "source": "./plugins/gemini-images",
       "author": {
-        "name": "Vanir Labs"
+        "name": "Christian Brandborg"
       }
     },
     {
