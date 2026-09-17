@@ -1,8 +1,8 @@
 ---
 name: brainstorm
-description: "Runs whenever the user wants a list of options to choose from, or is stuck on a decision about any D&D campaign element. Trigger phrases include: 'brainstorm', 'give me options', 'give me options for', 'I need options for', 'give me a bunch', 'give me a bunch of options', 'give me ideas', 'I need ideas', 'I need ideas for', 'I need ideas for what', 'what could happen if', 'what could [X] do', 'what are some ways', 'help me decide', 'help me decide between', 'give me alternatives', 'come up with X options', 'I want alternatives', 'I'm stuck on', 'give me X [options/ideas/versions/alternatives]', 'I'll pick from a list'. Also triggers for any request for a set of scene hooks, plot twists, NPC backstories, item mechanics, dialogue options, chapter openings, or encounter ideas where the user wants to pick from multiple possibilities before committing to one. Enforces structured ideation: generates 5-10 options with tradeoffs before committing."
+description: "Use when the user wants a list of options to choose from, or is stuck on a decision about any D&D campaign element. Trigger phrases include: 'brainstorm', 'give me options', 'give me options for', 'I need options for', 'give me a bunch', 'give me a bunch of options', 'give me ideas', 'I need ideas', 'I need ideas for', 'I need ideas for what', 'what could happen if', 'what could [X] do', 'what are some ways', 'help me decide', 'help me decide between', 'give me alternatives', 'come up with X options', 'I want alternatives', 'I'm stuck on', 'give me X [options/ideas/versions/alternatives]', 'I'll pick from a list'. Also triggers for any request for a set of scene hooks, plot twists, NPC backstories, item mechanics, dialogue options, chapter openings, or encounter ideas where the user wants to pick from multiple possibilities before committing to one. Enforces structured ideation: generates 5-10 options with tradeoffs before committing."
 argument-hint: "[optional: topic to brainstorm]"
-allowed-tools: [Read, Glob, Grep, Bash]
+allowed-tools: "Read Glob Grep Bash"
 ---
 
 # Brainstorm
@@ -13,9 +13,9 @@ Most creative dead-ends in campaign authoring come from committing to the first 
 
 Open every brainstorm session with this question:
 
-> **Inline** (Claude-only, narrative) or **Grounded** (Claude + rules lookup for any mechanical elements)?
+> **Inline** (narrative only) or **Grounded** (narrative plus rules lookup for mechanical elements)?
 
-- **Inline** is for narrative choices: scene hooks, NPC backstories, plot twists, dialogue options, place names, atmospheric variations. Claude's judgment is stronger than any RNG here.
+- **Inline** is for narrative choices: scene hooks, NPC backstories, plot twists, dialogue options, place names, atmospheric variations. The agent's judgment is stronger than any RNG here.
 - **Grounded** is for anything mechanical: encounter composition, DCs, spell effects, monster selection. Grounded mode invokes `dnd-lookup` for every number or rules reference.
 
 Wait for the user's answer before generating. If they don't specify, default to **inline** unless the request is obviously mechanical.
@@ -82,7 +82,7 @@ Brainstorm when:
 
 ## Example session
 
-> User: *"I need ideas for how chapter 10 opens. The party just left Ravenholt, they're riding to the Decaying Monastery, and I don't know what to put on the road."*
+> User: *"I need ideas for how chapter 10 opens. The party just left Greyhaven, they're riding to the ruined monastery, and I don't know what to put on the road."*
 
 **Step 1 (mode):** "Inline or grounded? A road-opening scene probably doesn't need mechanical grounding — inline means I pull from narrative craft rather than querying monster stats. Grounded would matter if you want specific creatures or environmental hazards with RAW DCs. Your call."
 
@@ -92,7 +92,7 @@ Brainstorm when:
 
 ### 1. The scarecrow that turns its head
 The party rides past a field with scarecrows. As they pass the last one, its head follows them. Nothing else. Don't explain.
-**Cost:** free — pure atmosphere.  **Signal:** the plague's reach extends past Ravenholt.  **Forecloses:** nothing — this can be a one-off.
+**Cost:** free — pure atmosphere.  **Signal:** the threat extends beyond Greyhaven.  **Forecloses:** nothing — this can be a one-off.
 
 ### 2. A child, alone
 A lone child sits on a stone by the road. Says her parents told her to wait here. Will not move. Has been there two days.
@@ -100,7 +100,7 @@ A lone child sits on a stone by the road. Says her parents told her to wait here
 
 ### 3. Bells in the distance
 They hear a monastery bell faintly on the wind. The road isn't close enough to any monastery to hear one. The bell stops when anyone looks at the horizon. Starts again when they don't.
-**Cost:** free atmosphere, builds toward chapter 10.  **Signal:** the Decaying Monastery is reaching out to them.  **Forecloses:** a quiet opening — this one is eerie.
+**Cost:** free atmosphere, builds toward chapter 10.  **Signal:** the ruined monastery is reaching out to them.  **Forecloses:** a quiet opening — this one is eerie.
 
 [...continue to 8-10]
 
@@ -108,6 +108,6 @@ They hear a monastery bell faintly on the wind. The road isn't close enough to a
 
 ## What this skill is NOT
 
-- **Not a random generator.** Claude is the brain. No RNG feed, no external tables.
-- **Not a final answer machine.** Brainstorm ends when the user picks, not when Claude picks.
+- **Not a random generator.** Use creative judgment, not an RNG feed or external tables.
+- **Not a final answer machine.** Brainstorm ends when the user picks, not when the agent picks.
 - **Not a substitute for execution.** Once picked, hand off to the skill that actually writes the thing.

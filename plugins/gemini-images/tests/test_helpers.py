@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "server"))
 
 from image_helpers import (
-    _slugify, _next_variation, _next_sequence, _build_filename, _validate_model,
+    GenerationLimiter, _SUPPORTED_MODELS, _slugify, _next_variation, _next_sequence, _build_filename, _validate_model,
 )
 
 
@@ -128,13 +128,23 @@ class TestNextSequence:
 
 class TestValidateModel:
     def test_valid_model(self):
-        assert _validate_model("gemini-3.1-flash-image-preview") is None
+        assert _validate_model("gemini-3.1-flash-image") is None
 
-    def test_valid_model_25(self):
-        assert _validate_model("gemini-2.5-flash-image") is None
+    def test_valid_model_lite(self):
+        assert _validate_model("gemini-3.1-flash-lite-image") is None
+
+    def test_discontinued_model_25_is_rejected(self):
+        assert _validate_model("gemini-2.5-flash-image") is not None
 
     def test_valid_model_pro(self):
-        assert _validate_model("gemini-3-pro-image-preview") is None
+        assert _validate_model("gemini-3-pro-image") is None
+
+    def test_supported_models_match_current_stable_image_family(self):
+        assert set(_SUPPORTED_MODELS) == {
+            "gemini-3.1-flash-lite-image",
+            "gemini-3.1-flash-image",
+            "gemini-3-pro-image",
+        }
 
     def test_invalid_model(self):
         result = _validate_model("gemini-2.0-flash-preview-image-generation")
@@ -146,5 +156,27 @@ class TestValidateModel:
         assert result is not None
 
     def test_close_but_wrong(self):
-        result = _validate_model("gemini-3.1-flash-image")
+        result = _validate_model("gemini-3.1-flash-image-preview")
         assert result is not None
+
+
+class TestGenerationLimiter:
+    def test_reserves_attempts_and_blocks_before_limit_is_exceeded(self):
+        limiter = GenerationLimiter()
+        assert limiter.reserve(1, 3) is None
+        assert limiter.reserve(2, 3) is None
+        assert "limit" in limiter.reserve(1, 3).lower()
+        assert limiter.attempt_count == 3
+
+    def test_rejects_invalid_counts_and_limits(self):
+        limiter = GenerationLimiter()
+        for count, maximum in ((0, 5), (1, 0), (True, 5), (1, True), (5, 4)):
+            assert limiter.reserve(count, maximum) is not None
+        assert limiter.attempt_count == 0
+
+    def test_cannot_raise_session_limit_after_first_reservation(self):
+        limiter = GenerationLimiter()
+        assert limiter.reserve(1, 2) is None
+        assert limiter.reserve(1, 100) is None
+        assert "limit" in limiter.reserve(1, 100).lower()
+        assert limiter.attempt_count == 2

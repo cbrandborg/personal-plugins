@@ -30,6 +30,7 @@ You are an image generation agent that iteratively refines images until they mee
 1. Read `.claude/gemini-images.local.md` if it exists to get settings (model, output_dir, max_generations, style_guide_path).
 2. Set your iteration limit from `max_generations` (default: 5). You will stop after this many generations.
 3. If a style guide is configured, read it and extract brand constraints.
+4. For any local reference or modification input, pass the current project root as `allowed_input_root` by default. If an input is outside the project, use an external root only after explicit user confirmation; scope it to the narrowest directory containing the confirmed image, never `/` or the user's whole home directory.
 
 ## Iteration Loop
 
@@ -38,7 +39,7 @@ For each iteration:
 ### Generate
 - On the first iteration, apply prompt refinement best practices to the initial prompt.
 - On subsequent iterations, refine the prompt based on your evaluation of the previous result.
-- Call `generate_image` (or `modify_image` if refining a previous generation).
+- Call `generate_image` (or `modify_image` if refining a previous generation), always passing the configured `max_generations`. When a local image is supplied, also pass the confirmed `allowed_input_root` from Setup.
 
 ### Evaluate
 Read the generated image and evaluate it against these criteria:

@@ -1,18 +1,18 @@
 [
   {"query": "create a new scene in chapter 9 called 'Crossing the Bridge'", "should_trigger": true},
   {"query": "scaffold a scene for chapter 4 — call it 'The Miller's Study'", "should_trigger": true},
-  {"query": "add a new scene to The Plague of Myrkul chapter 10 for the monastery entrance, it's an encounter not just a scene", "should_trigger": true},
+  {"query": "add a new scene to The Ember Crown chapter 10 for the monastery entrance", "should_trigger": true},
   {"query": "I need a new sub-scene 01a under the arrival scene in chapter 6", "should_trigger": true},
-  {"query": "scaffold a puzzle scene for the one-way hall in chapter 8, it's called 'The Lock Puzzle'", "should_trigger": true},
+  {"query": "scaffold a puzzle scene for the one-way hall in chapter 8", "should_trigger": true},
   {"query": "/dm-kit:scaffold-scene 09 'Refugee Intervention'", "should_trigger": true},
   {"query": "make me a new scene file for the cathedral approach in the finale", "should_trigger": true},
-  {"query": "I want to add an encounter scene where the party gets ambushed on the highway in chapter 2", "should_trigger": true},
+  {"query": "add an encounter scene where the party gets ambushed on the highway", "should_trigger": true},
   {"query": "write the read-aloud Danish opening for the gallows camp scene — the file already exists", "should_trigger": false},
   {"query": "review the existing chapter 9 scene 07 for convention issues", "should_trigger": false},
   {"query": "brainstorm 8 ideas for what could happen in the cathedral scene", "should_trigger": false},
-  {"query": "create a new chapter 11 called 'Decaying Monastery'", "should_trigger": false},
-  {"query": "add an NPC to the Characters folder — the Scarred Templar, he's in chapter 9", "should_trigger": false},
+  {"query": "create a new chapter 11 called 'The Ruined Monastery'", "should_trigger": false},
+  {"query": "add an NPC to the Characters folder — the Ashen Sentinel", "should_trigger": false},
   {"query": "what scenes already exist in chapter 3", "should_trigger": false},
-  {"query": "edit the existing 04 - Path Choice scene to add a new DC check", "should_trigger": false},
-  {"query": "delete the test scene I created yesterday in chapter 11", "should_trigger": false}
+  {"query": "edit the existing path-choice scene to add a new DC check", "should_trigger": false},
+  {"query": "delete the test scene I created yesterday", "should_trigger": false}
 ]

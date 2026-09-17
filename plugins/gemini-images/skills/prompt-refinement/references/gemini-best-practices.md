@@ -4,9 +4,9 @@
 
 | Model | Cost/image | Speed | Best for |
 |-------|-----------|-------|----------|
-| `gemini-2.5-flash-image` | $0.039 | Fastest | Iteration, drafts, high-volume |
-| `gemini-3.1-flash-image-preview` | ~$0.10 | Fast | Advanced reasoning, complex scenes |
-| `gemini-3-pro-image-preview` | ~$0.19 | Slower | Professional quality, final assets |
+| `gemini-3.1-flash-lite-image` | ~$0.034/1K | Fastest | Iteration, drafts, high-volume |
+| `gemini-3.1-flash-image` | ~$0.067/1K | Fast | Advanced reasoning, complex scenes |
+| `gemini-3-pro-image` | ~$0.134 | Slower | Professional quality, final assets |
 
 ## Prompt Transformation Examples
 

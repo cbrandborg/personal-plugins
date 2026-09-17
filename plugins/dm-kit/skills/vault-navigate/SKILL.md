@@ -1,39 +1,41 @@
 ---
 name: vault-navigate
-description: "**Auto-triggers on any question about which campaign vault is active, how the vault is structured, or where to find things inside it.** Trigger phrases include: 'what vault am I in', 'which vault', 'which campaign', 'which campaign is this', 'where am I', 'what campaign are we in', 'where are we', 'what project is this', 'show me the chapters', 'show me the chapter folder', 'list characters', 'list all the NPC files', 'how is this vault structured', 'how is this D&D vault structured', 'where are the Characters', 'where do scenes live', 'what conventions does this vault follow', 'quick sanity check', 'is the current state doc', 'what scenes exist in', 'what does this campaign folder look like'. **Also auto-loads as supporting context whenever any other dm-kit skill runs** (scaffold-*, write-*, brainstorm, dnd-lookup) — it does not need to be invoked explicitly. Teaches Claude how to detect the current vault from CWD, the folder layout, canvas conventions, and which files to read first. **Critical: preserve the CWD path style — never swap between Google Drive and Documents mirrors.**"
+description: "Use for questions about which D&D campaign vault is active, how it is structured, where chapters, scenes, or characters live, and which files to read first. Also load as supporting context for other dm-kit workflows. Detect the vault from the current working directory and preserve the returned path style exactly; never swap between cloud and local mirrors."
 ---
 
 # Vault Navigation
 
-Every D&D campaign vault under `DnD/` follows the same structure. This skill teaches Claude how to orient itself in any of them.
+Every D&D campaign vault under `DnD/` follows the same structure. This skill teaches the agent how to orient itself in any of them.
 
 ## Detecting the current vault
 
 Run the helper script to find the vault root by walking up from the current working directory:
 
+Set `PLUGIN_ROOT` for the active host first. In Hermes, run `PLUGIN_ROOT="$(cd "${HERMES_SKILL_DIR}/../.." && pwd)"`; in Claude Code, use `PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"`. Other hosts must derive the root as two directories above this skill's `SKILL.md`. Verify the helper exists before running it.
+
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh
+"$PLUGIN_ROOT/scripts/detect-vault.sh"
 ```
 
-It prints the absolute path of the nearest directory containing both `CLAUDE.md` and `Chapters/`, or exits 1 if not inside any vault.
+It prints the absolute path of the nearest recognized campaign root containing `Chapters/`, or exits 1 if not inside any vault.
 
-Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Plague of Myrkul*, *The Fractured Crown*, *The Bounty of Dunbar*, or any future campaign.
+Use this at the start of any task that needs vault context. Do not hardcode campaign names — the same skills work for *The Ember Crown*, *The Shattered Compass*, *The Lost Expedition*, or any future campaign.
 
 ### CRITICAL: preserve the CWD path style
 
-Some users have the same vault mounted at multiple absolute roots (e.g. Google Drive at `~/My Drive/sync/private-obsidian/DnD/...` AND locally at `~/Documents/private-obsidian/DnD/...`). These are DIFFERENT absolute paths that refer to the same files.
+Some users have the same vault mounted at multiple absolute roots (e.g. cloud storage at `~/Cloud/campaign-vaults/DnD/...` and locally at `~/Documents/campaign-vaults/DnD/...`). These are different absolute paths that refer to the same files.
 
 **Always use the path that `detect-vault.sh` returns**, because it walks up from the literal `$PWD` without resolving symlinks. Never substitute a different absolute root even if you believe it's equivalent. All file Writes, Edits, and Reads must stay under that exact returned path.
 
-Why this matters: the `canvas-sync-hook` and Claude Code's own path validation compare absolute paths. A Write to the Documents mirror while CWD is the Drive mirror will look like a file outside the project root and may trigger false warnings or blocks.
+Why this matters: the `canvas-sync-hook` and host path validation may compare absolute paths. A write to the Documents mirror while CWD is the Drive mirror can look like a file outside the project root and may trigger false warnings or blocks.
 
-Rule of thumb: if `pwd` prints `~/My Drive/.../The Plague of Myrkul/Ideas`, every path you use must start with `~/My Drive/.../The Plague of Myrkul/`, not `~/Documents/.../The Plague of Myrkul/`. If Claude Code offers additional working directories, **ignore them** — always use the one matching `detect-vault.sh`'s output.
+Rule of thumb: if `pwd` prints `~/Cloud/.../The Ember Crown/Ideas`, every path you use must start with `~/Cloud/.../The Ember Crown/`, not `~/Documents/.../The Ember Crown/`. If the host offers additional working directories, **ignore them** — always use the one matching `detect-vault.sh`'s output.
 
 ## Read these first
 
 Once you know the vault root, read in this order for any task that touches campaign content:
 
-1. **`<vault>/CLAUDE.md`** — conventions specific to this vault (language split, color codes, etc.). Usually very similar across vaults but may carry campaign-specific notes.
+1. Apply project instructions already supplied by the active host. Do not independently load hidden host-instruction files.
 2. **`<vault>/_Campaign Overview.md`** — the live state snapshot. Who the party is, where they are, what threads are active. This is the single source of truth for current state.
 3. **`<vault>/Campaign_Summary_Updated.md`** (if present) — detailed play-by-play history.
 
@@ -43,7 +45,6 @@ For finale or major planning work, also read `<vault>/Ideas/` for brainstorms an
 
 ```
 <vault>/
-├── CLAUDE.md                      # Vault conventions
 ├── _Campaign Overview.md          # Live state (read first for current-state tasks)
 ├── Campaign_Summary_Updated.md    # History
 ├── Chapters/
@@ -89,7 +90,7 @@ Canvas nodes that reference files must have `height` between 250 and 600 px. Sma
 - `"6"` player choice / decision point
 
 ### Path quoting
-Chapter folders contain spaces and apostrophes (e.g. `02 - Durgan's Rest`). Always quote paths in shell commands.
+Chapter folders contain spaces and apostrophes (e.g. `02 - River's End`). Always quote paths in shell commands.
 
 ## Scene filename convention
 
@@ -111,4 +112,4 @@ When the user asks for something, use this quick routing:
 | Write NPC voice/dialogue | `write-character` skill for guidance |
 | Brainstorm options (scene hooks, encounters, plot twists) | `brainstorm` skill |
 | Look up a monster, spell, rule, DC | `dnd-lookup` skill |
-| Review existing scene for conventions | The `scene-reviewer` agent triggers automatically after Write/Edit |
+| Review existing scene for conventions | Claude Code uses the proactive `scene-reviewer`; in Hermes, explicitly load the appropriate review skill or inspect the scene manually |

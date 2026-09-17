@@ -1,25 +1,29 @@
 ---
 name: scaffold-chapter
-description: "Runs when the user wants to create a new chapter in the campaign vault. Trigger phrases include: 'create a new chapter', 'create a new chapter called', 'scaffold chapter', 'scaffold chapter X', 'add chapter', 'add a new chapter', 'add a new chapter to this vault', 'I need to start a new chapter', 'set up the folder and canvas for chapter', 'set up the folder for chapter', 'make a new chapter folder', 'make a new chapter folder with', 'I want a new chapter', 'new chapter container', 'set up a new chapter container', 'start chapter [N]', '/dm-kit:scaffold-chapter'. Also triggers for any request to initialize the folder structure, canvas file, and Scenes/ directory for a new chapter number — including vague phrasings like 'set up chapter 10' or 'get chapter 11 ready'. Creates the folder, .canvas file with a title node, Scenes/ directory, and a starter '01 - Arrival' scene."
+description: "Use when the user wants to create a new chapter in the campaign vault. Trigger phrases include: 'create a new chapter', 'create a new chapter called', 'scaffold chapter', 'scaffold chapter X', 'add chapter', 'add a new chapter', 'add a new chapter to this vault', 'I need to start a new chapter', 'set up the folder and canvas for chapter', 'set up the folder for chapter', 'make a new chapter folder', 'make a new chapter folder with', 'I want a new chapter', 'new chapter container', 'set up a new chapter container', 'start chapter [N]', '/dm-kit:scaffold-chapter'. Also triggers for any request to initialize the folder structure, canvas file, and Scenes/ directory for a new chapter number — including vague phrasings like 'set up chapter 10' or 'get chapter 11 ready'. Creates the folder, .canvas file with a title node, Scenes/ directory, and a starter '01 - Arrival' scene."
 argument-hint: "<chapter-number> <chapter-name>"
-allowed-tools: [Read, Write, Edit, Glob, Bash]
+allowed-tools: "Read Write Edit Glob Bash"
 ---
 
 # Scaffold Chapter
 
 Create a new chapter from scratch: folder, canvas file, Scenes/ directory, starter scene.
 
+## Resolve the plugin root
+
+Before running a bundled helper, set `PLUGIN_ROOT` for the active host. In Hermes, run `PLUGIN_ROOT="$(cd "${HERMES_SKILL_DIR}/../.." && pwd)"`; in Claude Code, use `PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"`. Other hosts must derive the root as two directories above this skill's `SKILL.md`. Verify the selected helper exists before writing anything.
+
 ## Arguments
 
 - `<chapter-number>` — the numeric prefix (e.g. `10`, `11`). Use two digits.
-- `<chapter-name>` — the chapter title (e.g. `"Decaying Monastery"`, `"The Long Road"`). Quote if it contains spaces.
+- `<chapter-name>` — the chapter title (e.g. `"Ruined Observatory"`, `"The Long Road"`). Quote if it contains spaces.
 
 ## Execution steps
 
 ### 1. Detect the vault
 
 ```bash
-VAULT="$(${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh)" || { echo "Not inside a D&D vault."; exit 1; }
+VAULT="$("$PLUGIN_ROOT/scripts/detect-vault.sh")" || { echo "Not inside a D&D vault."; exit 1; }
 ```
 
 ### 2. Check for collision
@@ -80,9 +84,10 @@ aliases: []
 ### 6. Add the starter scene to the canvas
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/add-scene-to-canvas.py \
+python3 "$PLUGIN_ROOT/scripts/add-scene-to-canvas.py" \
   "<VAULT>/Chapters/<NN - Name>/<Name>.canvas" \
-  "DnD/<campaign-name>/Chapters/<NN - Name>/Scenes/01 - Arrival.md"
+  "Chapters/<NN - Name>/Scenes/01 - Arrival.md" \
+  --vault-root "$VAULT"
 ```
 
 ### 7. Update the chapter index (optional)

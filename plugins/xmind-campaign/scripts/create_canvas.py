@@ -99,7 +99,7 @@ def create_canvas(scenes_dir: str, vault_prefix: str, output_path: str):
     print(f"  Nodes: {len(nodes)}")
     print(f"  Edges: {len(edges)}")
     print(f"\nNOTE: This generates a basic linear layout.")
-    print("Edit the canvas manually or with Claude to add branching,")
+    print("Edit the canvas manually or with an agent to add branching,")
     print("color coding, NPC references, and choice nodes.")
 
 

@@ -1,10 +1,10 @@
 {
   "name": "gemini-images",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Generate and modify images using Google Gemini's image generation API. Includes prompt refinement, style guide support, iterative workflows, and cost controls.",
   "author": {
-    "name": "Vanir Labs",
-    "email": "hello@vanirlabs.dk"
+    "name": "Christian Brandborg",
+    "url": "https://github.com/cbrandborg"
   },
   "keywords": [
     "image-generation",

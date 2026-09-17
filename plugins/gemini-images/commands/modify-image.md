@@ -17,6 +17,8 @@ Verify the file exists. If it doesn't, tell the user and ask for the correct pat
 
 **IMPORTANT:** An image path is REQUIRED. Do not proceed without one. If the user hasn't provided one, ask for it explicitly.
 
+Pass the current project root as `allowed_input_root` by default. If the source image is outside the project, use an external root only after explicit user confirmation; scope it to the narrowest directory containing the confirmed image, never `/` or the user's whole home directory.
+
 ## Step 2: Display the source image
 
 Read the source image using the Read tool so the user can see what they're working with. Briefly describe what you see in the image.
@@ -34,7 +36,7 @@ Ask what changes they want to make. Common modifications include:
 
 ## Step 4: Load settings
 
-Check for `.claude/gemini-images.local.md` to get `default_model` and `output_dir`.
+Check for `.claude/gemini-images.local.md` to get `default_model`, `output_dir`, and `max_generations` (default `5`).
 
 ## Step 5: Refine the instruction
 
@@ -52,6 +54,8 @@ Call the `modify_image` MCP tool with:
 - `instruction`: the refined instruction
 - `model`: from settings or default
 - `output_dir`: **IMPORTANT** — always pass an absolute path. Resolve the `output_dir` from settings (or default `gemini-assets/outputs`) relative to the current project/working directory. Never pass a relative path — the MCP server runs from the plugin cache, not the user's project.
+- `allowed_input_root`: the confirmed absolute root described in Step 1
+- `max_generations`: from settings or `5`; the MCP server enforces this session cap
 
 ## Step 7: Present the result
 

@@ -1,6 +1,6 @@
 ---
 name: write-character
-description: "Loads when the user is developing an NPC or PC's voice, personality, dialogue, or mannerisms in a D&D campaign vault. Trigger phrases include: 'write an NPC', 'give this character a voice', 'give [name] a distinct [voice/speaking voice]', 'flesh out this character', 'flesh out [name]'s personality', 'write NPC dialogue', 'write dialogue for [name]', 'make this character memorable', 'what does [NPC] sound like', 'how should [name] sound', 'how should [name] sound in dialogue', 'what mannerisms should [name] have', 'help me find a signature phrase', 'signature phrase for', 'write a voice profile', 'write a short NPC voice profile', 'NPC voice profile', 'develop [name]'s personality'. Also triggers when the user asks how a specific NPC should feel in dialogue, wants to find a recurring phrase or verbal tic, or needs help making an NPC feel distinctive and memorable in play. Provides principles for NPC voice, dialogue, and functional typing, plus guidance on when stat blocks are needed."
+description: "Use when developing an NPC or PC's voice, personality, dialogue, mannerisms, signature phrase, or narrative function in a D&D campaign vault. Helps make characters distinctive in play with minimum viable details, Danish speech patterns, major-versus-minor guidance, dialogue templates, faction context, and advice on when a stat block is needed."
 ---
 
 # Writing Characters
@@ -89,7 +89,7 @@ Not every NPC is the same kind of piece on the board. Knowing the function makes
 Every NPC file should record:
 
 - **Faction**: `enemy` / `ally` / `neutral` / `contested`. "Contested" is the most interesting label — NPCs whose loyalty the players are fighting over or whose alignment has shifted.
-- **First met**: which chapter and ideally which scene. Link to the scene file. This matters because Claude (in future sessions) needs to know WHEN the party met this character to gauge how much history is shared.
+- **First met**: which chapter and ideally which scene. Link to the scene file. This matters because the agent in future sessions needs to know WHEN the party met this character to gauge how much history is shared.
 - **Appearances**: growing list of chapters. Add one every time the character shows up in play.
 
 ## When an NPC needs a stat block

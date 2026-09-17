@@ -17,12 +17,15 @@ Check if the user has provided or mentioned any reference images (style referenc
 
 If the user mentions wanting to match an existing style, color palette, or composition from an image, ask them for the path or check `gemini-assets/inputs/` in the current working directory. Always pass absolute paths to the MCP tools.
 
+For any reference upload, pass the current project root as `allowed_input_root` by default. If the image is outside the project, use an external root only after explicit user confirmation; scope it to the narrowest directory containing the confirmed image, never `/` or the user's whole home directory.
+
 ## Step 2: Load settings
 
 Check if a `.claude/gemini-images.local.md` file exists in the current project directory. If it does, read it to get:
-- `default_model` (fallback: `gemini-3.1-flash-image-preview`)
+- `default_model` (fallback: `gemini-3.1-flash-lite-image`)
 - `output_dir` (fallback: `./gemini-assets/outputs`)
 - `style_guide_path` (optional)
+- `max_generations` (fallback: `5`)
 - `auto_refine_prompts` (fallback: `true`)
 
 ## Step 3: Apply style guide (if configured)
@@ -57,6 +60,8 @@ Call the `generate_image` MCP tool with:
 - `model`: from settings or default
 - `aspect_ratio`: ask the user or default to "1:1"
 - `output_dir`: **IMPORTANT** — always pass an absolute path. Resolve the `output_dir` from settings (or default `gemini-assets/outputs`) relative to the current project/working directory. For example, if you're in `/path/to/project`, pass `/path/to/project/gemini-assets/outputs`. Never pass a relative path — the MCP server runs from the plugin cache, not the user's project.
+- `allowed_input_root`: when `reference_image_path` is set, pass the confirmed absolute root described in Step 1
+- `max_generations`: from settings or `5`; the MCP server enforces this session cap
 
 ## Step 6: Present the result
 

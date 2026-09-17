@@ -1,17 +1,21 @@
 ---
 name: scaffold-character
-description: "Runs when the user wants to create a new character file in the campaign vault. Trigger phrases include: 'create a character', 'create a new NPC', 'create a new NPC called', 'add an NPC', 'scaffold a PC', 'new character for the party', 'new player character', 'add a new PC', 'add a new PC to the party', 'write up [name]', 'create a character file', 'create a character file for', 'I need to create a character file', 'I need to create a character', 'start a character file', 'start a character file for', 'make a new character file', 'make a character file', 'create an NPC for', '/dm-kit:scaffold-character'. Also triggers for any request to scaffold, initialize, or write up a new character document in the Characters/ folder — whether it's a major villain, a minor NPC, or a new player character joining the party. Creates a character markdown file using the correct PC or NPC template."
+description: "Use when the user wants to create a new character file in the campaign vault. Trigger phrases include: 'create a character', 'create a new NPC', 'create a new NPC called', 'add an NPC', 'scaffold a PC', 'new character for the party', 'new player character', 'add a new PC', 'add a new PC to the party', 'write up [name]', 'create a character file', 'create a character file for', 'I need to create a character file', 'I need to create a character', 'start a character file', 'start a character file for', 'make a new character file', 'make a character file', 'create an NPC for', '/dm-kit:scaffold-character'. Also triggers for any request to scaffold, initialize, or write up a new character document in the Characters/ folder — whether it's a major villain, a minor NPC, or a new player character joining the party. Creates a character markdown file using the correct PC or NPC template."
 argument-hint: "<name> --type npc|pc [--chapter <NN>] [--faction ally|enemy|neutral|contested] [--major|--minor]"
-allowed-tools: [Read, Write, Glob, Bash]
+allowed-tools: "Read Write Glob Bash"
 ---
 
 # Scaffold Character
 
 Create an NPC or PC file using the right template. Both live in `<VAULT>/Characters/`.
 
+## Resolve the plugin root
+
+Before running a bundled helper, set `PLUGIN_ROOT` for the active host. In Hermes, run `PLUGIN_ROOT="$(cd "${HERMES_SKILL_DIR}/../.." && pwd)"`; in Claude Code, use `PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"`. Other hosts must derive the root as two directories above this skill's `SKILL.md`. Verify the selected helper exists before writing anything.
+
 ## Arguments
 
-- `<name>` — the character's name, as it appears on the file (e.g. `"Marshall Garrick"`). Quote if it contains spaces.
+- `<name>` — the character's name, as it appears on the file (e.g. `"Marshal Rowan"`). Quote if it contains spaces.
 - `--type npc|pc` — **required**. Determines which template is used.
 - `--chapter <NN>` — optional. The chapter number where they're first met. Used for the `first-met` field.
 - `--faction ally|enemy|neutral|contested` — optional, NPC only. Defaults to `neutral` if not given.
@@ -22,7 +26,7 @@ Create an NPC or PC file using the right template. Both live in `<VAULT>/Charact
 ### 1. Detect the vault
 
 ```bash
-VAULT="$(${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh)" || { echo "Not inside a D&D vault."; exit 1; }
+VAULT="$("$PLUGIN_ROOT/scripts/detect-vault.sh")" || { echo "Not inside a D&D vault."; exit 1; }
 ```
 
 ### 2. Check for collision
@@ -152,7 +156,7 @@ aliases: []
 
 ### For both
 
-- **`first-met`**: the chapter number where this character was introduced (or will be). Used by Claude in future sessions to gauge how much shared history exists.
+- **`first-met`**: the chapter number where this character was introduced (or will be). Used by the agent in future sessions to gauge how much shared history exists.
 - **`appearances`**: growing list of chapters. Add entries over time.
 - **`major: true|false`**: major characters get full treatment; minor NPCs are lean.
 
@@ -162,7 +166,7 @@ aliases: []
 
 ### PC-specific
 
-- **`character-sheet`**: paste the D&D Beyond URL. dm-kit does not scrape it. If Claude needs stat details mid-session, the user can paste them or Claude can `WebFetch` the public page.
+- **`character-sheet`**: paste the D&D Beyond URL. dm-kit does not scrape it. If the agent needs stat details mid-session, the user can paste them or the agent can fetch a public page when web access is available.
 - **`personal-arc`**: the DM's plan for this PC's personal story. Kept private from the player.
 
 ## Error handling

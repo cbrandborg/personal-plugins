@@ -2,16 +2,54 @@
 
 import json
 import re
+import threading
 from pathlib import Path
 
 _VARIATION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Supported models and approximate per-image cost
 _SUPPORTED_MODELS = {
-    "gemini-2.5-flash-image": 0.039,
-    "gemini-3.1-flash-image-preview": 0.10,
-    "gemini-3-pro-image-preview": 0.19,
+    "gemini-3.1-flash-lite-image": 0.034,
+    "gemini-3.1-flash-image": 0.067,
+    "gemini-3-pro-image": 0.134,
 }
+
+
+class GenerationLimiter:
+    """Reserve billable generation attempts under a process-session limit."""
+
+    def __init__(self) -> None:
+        self._attempt_count = 0
+        self._session_maximum: int | None = None
+        self._lock = threading.Lock()
+
+    @property
+    def attempt_count(self) -> int:
+        with self._lock:
+            return self._attempt_count
+
+    def reserve(self, count: int, maximum: int) -> str | None:
+        if (
+            isinstance(count, bool)
+            or not isinstance(count, int)
+            or count < 1
+            or isinstance(maximum, bool)
+            or not isinstance(maximum, int)
+            or maximum < 1
+            or count > maximum
+        ):
+            return "Generation count and max_generations must be positive integers within the limit."
+        with self._lock:
+            if self._session_maximum is None:
+                self._session_maximum = maximum
+            effective_maximum = self._session_maximum
+            if count > effective_maximum or self._attempt_count + count > effective_maximum:
+                return (
+                    f"Generation limit reached: {self._attempt_count}/{effective_maximum} attempts used; "
+                    f"request needs {count}."
+                )
+            self._attempt_count += count
+        return None
 
 
 def _validate_model(model: str) -> str | None:

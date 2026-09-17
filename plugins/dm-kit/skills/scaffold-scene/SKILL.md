@@ -1,8 +1,8 @@
 ---
 name: scaffold-scene
-description: "Runs when the user wants to create a new scene file inside a chapter. Trigger phrases include: 'create a new scene', 'create a new scene in chapter', 'scaffold a scene', 'scaffold a scene for chapter', 'add a scene', 'add a new scene', 'new scene in chapter', 'make a scene for', 'make me a new scene file', 'I need a new sub-scene', 'I want to add an encounter scene', 'I want to add a scene where', 'add an encounter scene', '/dm-kit:scaffold-scene'. Also triggers for any request to create a new scene file — whether it's a main scene, sub-scene (01a, 01b), encounter, puzzle, or dialogue scene — inside any numbered chapter folder. Creates the scene .md file AND updates the chapter's .canvas JSON in one atomic step. Always uses CWD-anchored vault path from detect-vault.sh."
+description: "Use when the user wants to create a new scene file inside a chapter. Trigger phrases include: 'create a new scene', 'create a new scene in chapter', 'scaffold a scene', 'scaffold a scene for chapter', 'add a scene', 'add a new scene', 'new scene in chapter', 'make a scene for', 'make me a new scene file', 'I need a new sub-scene', 'I want to add an encounter scene', 'I want to add a scene where', 'add an encounter scene', '/dm-kit:scaffold-scene'. Also triggers for any request to create a new scene file — whether it's a main scene, sub-scene (01a, 01b), encounter, puzzle, or dialogue scene — inside any numbered chapter folder. Creates the scene .md file AND updates the chapter's .canvas JSON in one atomic step. Always uses CWD-anchored vault path from detect-vault.sh."
 argument-hint: "<chapter-number> <scene-title> [--type scene|encounter|puzzle] [--sub <parent-number>]"
-allowed-tools: [Read, Write, Edit, Glob, Bash]
+allowed-tools: "Read Write Edit Glob Bash"
 ---
 
 # Scaffold Scene
@@ -13,9 +13,13 @@ Create a new scene file AND its matching canvas node in one operation. This skil
 
 **All paths used in this skill must be anchored to the vault root returned by `detect-vault.sh` in step 1.** That script preserves the literal CWD path style. If the user has dual mirrors of the vault (e.g. Google Drive + Documents), `detect-vault.sh` returns the one matching the current CWD — use it verbatim.
 
-Never substitute a different absolute root, even if Claude Code offers additional working directories. Never resolve symlinks. Every Write, Edit, and Bash argument should start with the exact string `detect-vault.sh` returned.
+Never substitute a different absolute root, even if the host offers additional working directories. Never resolve symlinks. Every Write, Edit, and shell argument should start with the exact string `detect-vault.sh` returned.
 
-If your Write tool resolves the path differently than the vault root (e.g. Claude Code's path resolver picks a different mirror), abort and report the mismatch to the user — do not silently write to the wrong root.
+If your file-writing tool resolves the path differently than the vault root (for example, the host picks a different mirror), abort and report the mismatch to the user — do not silently write to the wrong root.
+
+## Resolve the plugin root
+
+Before running a bundled helper, set `PLUGIN_ROOT` for the active host. In Hermes, run `PLUGIN_ROOT="$(cd "${HERMES_SKILL_DIR}/../.." && pwd)"`; in Claude Code, use `PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"`. Other hosts must derive the root as two directories above this skill's `SKILL.md`. Verify the selected helper exists before writing anything.
 
 ## Arguments
 
@@ -29,7 +33,7 @@ If your Write tool resolves the path differently than the vault root (e.g. Claud
 ### 1. Detect the vault
 
 ```bash
-VAULT="$(${CLAUDE_PLUGIN_ROOT}/scripts/detect-vault.sh)" || { echo "Not inside a D&D vault. cd into one first."; exit 1; }
+VAULT="$("$PLUGIN_ROOT/scripts/detect-vault.sh")" || { echo "Not inside a D&D vault. cd into one first."; exit 1; }
 ```
 
 ### 2. Find the chapter folder
@@ -64,7 +68,7 @@ Use `ls` or `Glob` with the pattern `<CHAPTER>/Scenes/*.md`.
 ### 5. Build the scene file path and vault-relative path
 
 - **Absolute path**: `<CHAPTER>/Scenes/<NN> - <Title>.md`
-- **Vault-relative path** (for the canvas node, must start from the Drive mount): usually `DnD/<Campaign>/Chapters/<NN - Chapter>/Scenes/<NN - Title>.md`. Derive this by stripping everything before `DnD/` from the absolute path.
+- **Vault-relative path** (for the canvas node): `Chapters/<NN - Chapter>/Scenes/<NN - Title>.md`. Derive this by stripping the exact `<VAULT>/` prefix from the absolute path. It must start with `Chapters/`, not `DnD/<Campaign>/`, because `add-scene-to-canvas.py` resolves it from the detected campaign vault root.
 
 ### 6. Write the scene file
 
@@ -78,9 +82,10 @@ Use the template matching the `--type` argument (see **Templates** below). Respe
 ### 7. Add the node to the canvas
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/add-scene-to-canvas.py \
+python3 "$PLUGIN_ROOT/scripts/add-scene-to-canvas.py" \
   "<canvas-file>" \
-  "<vault-relative-scene-path>"
+  "Chapters/<NN - Chapter>/Scenes/<NN - Title>.md" \
+  --vault-root "$VAULT"
 ```
 
 The script prints the new node's ID. Include it in the confirmation message to the user.

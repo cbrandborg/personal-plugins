@@ -45,4 +45,7 @@ encoded=$(printf '%s' "$search" | python3 -c 'import sys, urllib.parse; print(ur
 url="https://api.open5e.com/${endpoint}/?search=${encoded}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-curl -sSfL "$url" | python3 "${SCRIPT_DIR}/_open5e-format.py"
+response_file=$(mktemp)
+trap 'rm -f "$response_file"' EXIT
+curl -sSfL "$url" >"$response_file"
+python3 "${SCRIPT_DIR}/_open5e-format.py" <"$response_file"

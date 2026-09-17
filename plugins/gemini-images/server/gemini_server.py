@@ -5,8 +5,10 @@ import io
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
+import warnings
 from pathlib import Path
 
 from PIL import Image as PIL_Image
@@ -20,6 +22,13 @@ mcp = FastMCP("gemini-images")
 # Default output structure
 _DEFAULT_OUTPUT_DIR = "gemini-assets/outputs"
 _DEFAULT_INPUT_DIR = "gemini-assets/inputs"
+_MAX_INPUT_IMAGE_BYTES = 10 * 1024 * 1024
+_SUPPORTED_INPUT_MIME_TYPES = {
+    "JPEG": "image/jpeg",
+    "PNG": "image/png",
+    "WEBP": "image/webp",
+}
+_OPEN_SUPPORTS_DIR_FD = os.open in os.supports_dir_fd
 
 # Session-level stats
 _session_stats = {
@@ -29,9 +38,11 @@ _session_stats = {
 }
 
 from image_helpers import (
-    _SUPPORTED_MODELS, _validate_model, _slugify,
+    GenerationLimiter, _SUPPORTED_MODELS, _validate_model, _slugify,
     _next_variation, _next_sequence, _build_filename,
 )
+
+_generation_limiter = GenerationLimiter()
 
 # Resolved API key, cached after first lookup
 _api_key_cache: str | None = None
@@ -108,6 +119,123 @@ def _client() -> genai.Client:
     return genai.Client(api_key=_resolve_api_key())
 
 
+def _absolute_input_path(value: str, label: str) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        raise ValueError(f"{label} must be an absolute path.")
+    return Path(os.path.normpath(os.fspath(path)))
+
+
+def _directory_open_flags() -> int:
+    required = ("O_DIRECTORY", "O_NOFOLLOW", "O_NONBLOCK")
+    if any(not hasattr(os, name) for name in required) or not _OPEN_SUPPORTS_DIR_FD:
+        raise RuntimeError(
+            "Secure local image uploads are unavailable on this platform."
+        )
+    return (
+        os.O_RDONLY
+        | os.O_DIRECTORY
+        | os.O_NOFOLLOW
+        | os.O_NONBLOCK
+        | getattr(os, "O_CLOEXEC", 0)
+    )
+
+
+def _open_directory_no_follow(path: Path) -> int:
+    """Open every directory component without following a symlink."""
+    flags = _directory_open_flags()
+    descriptor = os.open(path.anchor, flags)
+    try:
+        for component in path.parts[1:]:
+            next_descriptor = os.open(component, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = next_descriptor
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _load_allowed_input(
+    image_path: str, allowed_input_root: str
+) -> tuple[Path, bytes, str]:
+    """Validate and descriptor-read an image within an approved local root."""
+    root = _absolute_input_path(allowed_input_root, "allowed_input_root")
+    source = _absolute_input_path(image_path, "image_path")
+    try:
+        relative = source.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"Image path is outside allowed_input_root: {source}") from exc
+
+    try:
+        directory_descriptor = _open_directory_no_follow(root)
+    except OSError as exc:
+        raise ValueError(
+            "allowed_input_root must be a directory without symlink components."
+        ) from exc
+    if not relative.parts:
+        os.close(directory_descriptor)
+        raise ValueError("Input image path must identify a regular file.")
+
+    try:
+        directory_flags = _directory_open_flags()
+        for component in relative.parts[:-1]:
+            try:
+                next_descriptor = os.open(
+                    component, directory_flags, dir_fd=directory_descriptor
+                )
+            except OSError as exc:
+                raise ValueError(
+                    "Image paths may not contain symlink or non-directory components."
+                ) from exc
+            os.close(directory_descriptor)
+            directory_descriptor = next_descriptor
+
+        file_flags = (
+            os.O_RDONLY
+            | os.O_NOFOLLOW
+            | os.O_NONBLOCK
+            | getattr(os, "O_CLOEXEC", 0)
+        )
+        try:
+            file_descriptor = os.open(
+                relative.parts[-1], file_flags, dir_fd=directory_descriptor
+            )
+        except OSError as exc:
+            raise ValueError(
+                "Input image must be a regular file and may not be a symlink."
+            ) from exc
+        with os.fdopen(file_descriptor, "rb") as image_file:
+            file_stat = os.fstat(image_file.fileno())
+            if not stat.S_ISREG(file_stat.st_mode) or file_stat.st_nlink != 1:
+                raise ValueError(
+                    "Input image path must identify a regular file with one link."
+                )
+            if file_stat.st_size > _MAX_INPUT_IMAGE_BYTES:
+                raise ValueError("Input image exceeds the 10 MiB upload limit.")
+            image_data = image_file.read(_MAX_INPUT_IMAGE_BYTES + 1)
+    finally:
+        os.close(directory_descriptor)
+
+    if len(image_data) > _MAX_INPUT_IMAGE_BYTES:
+        raise ValueError("Input image exceeds the 10 MiB upload limit.")
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", PIL_Image.DecompressionBombWarning)
+            with PIL_Image.open(io.BytesIO(image_data)) as image:
+                image_format = image.format
+                image.verify()
+            mime_type = _SUPPORTED_INPUT_MIME_TYPES.get(image_format or "")
+            if mime_type is None:
+                raise ValueError("unsupported image format")
+            with PIL_Image.open(io.BytesIO(image_data)) as image:
+                image.load()
+    except Exception as exc:
+        raise ValueError("Input must be a valid supported image (PNG, JPEG, or WebP).") from exc
+    return source, image_data, mime_type
+
+
 def _save_images(
     response,
     output_dir: str,
@@ -153,10 +281,12 @@ def _track(model: str, count: int = 1) -> None:
 def generate_image(
     prompt: str,
     name: str,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     aspect_ratio: str = "1:1",
     reference_image_path: str | None = None,
     output_dir: str = _DEFAULT_OUTPUT_DIR,
+    max_generations: int = 5,
+    allowed_input_root: str | None = None,
 ) -> str:
     """Generate an image from a text prompt using Gemini.
 
@@ -164,11 +294,13 @@ def generate_image(
         prompt: Detailed text description of the image to generate.
         name: Short descriptive name for the image (3-5 words, used in filename).
               Example: 'cozy cabin sunset' -> saves as cozy-cabin-sunset-A.png
-        model: Gemini model to use. Options: gemini-2.5-flash-image,
-               gemini-3.1-flash-image-preview, gemini-3-pro-image-preview.
+        model: Gemini model to use. Options: gemini-3.1-flash-lite-image,
+               gemini-3.1-flash-image, gemini-3-pro-image.
         aspect_ratio: Image aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3).
         reference_image_path: Optional path to a reference image for style/composition guidance.
         output_dir: Directory to save the generated image.
+        max_generations: Maximum billable generation attempts for this server session.
+        allowed_input_root: Required root boundary when reference_image_path is used.
 
     Returns:
         JSON with file paths, model used, and prompt.
@@ -176,17 +308,15 @@ def generate_image(
     try:
         if err := _validate_model(model):
             return err
-        client = _client()
 
         contents: list = []
         if reference_image_path:
-            ref = Path(reference_image_path).expanduser().resolve()
-            if not ref.exists():
-                return json.dumps({"error": f"Reference image not found: {ref}"})
-            suffix = ref.suffix.lower()
-            mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
-            mime_type = mime_map.get(suffix, "image/png")
-            image_data = base64.b64encode(ref.read_bytes()).decode("utf-8")
+            if not allowed_input_root:
+                return json.dumps({"error": "allowed_input_root is required for local image uploads."})
+            _ref, raw_image_data, mime_type = _load_allowed_input(
+                reference_image_path, allowed_input_root
+            )
+            image_data = base64.b64encode(raw_image_data).decode("utf-8")
             contents.append(
                 types.Part(
                     inline_data=types.Blob(mime_type=mime_type, data=image_data)
@@ -194,6 +324,10 @@ def generate_image(
             )
         contents.append(types.Part(text=prompt))
 
+        if limit_error := _generation_limiter.reserve(1, max_generations):
+            return json.dumps({"error": limit_error})
+
+        client = _client()
         response = client.models.generate_content(
             model=model,
             contents=contents,
@@ -233,8 +367,10 @@ def modify_image(
     image_path: str,
     instruction: str,
     name: str | None = None,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     output_dir: str = _DEFAULT_OUTPUT_DIR,
+    max_generations: int = 5,
+    allowed_input_root: str | None = None,
 ) -> str:
     """Modify an existing image based on text instructions.
 
@@ -248,6 +384,8 @@ def modify_image(
         name: Short descriptive name (auto-detected from source filename if omitted).
         model: Gemini model to use.
         output_dir: Directory to save the modified image.
+        max_generations: Maximum billable generation attempts for this server session.
+        allowed_input_root: Required root boundary for the local source image.
 
     Returns:
         JSON with output file path and details.
@@ -255,9 +393,11 @@ def modify_image(
     try:
         if err := _validate_model(model):
             return err
-        src = Path(image_path).expanduser().resolve()
-        if not src.exists():
-            return json.dumps({"error": f"Image not found: {src}"})
+        if not allowed_input_root:
+            return json.dumps({"error": "allowed_input_root is required for local image uploads."})
+        src, raw_image_data, mime_type = _load_allowed_input(
+            image_path, allowed_input_root
+        )
 
         # Auto-detect name and variation from source filename
         detected_name = name
@@ -270,13 +410,10 @@ def modify_image(
             else:
                 detected_name = src.stem
 
-        # Determine MIME type
-        suffix = src.suffix.lower()
-        mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
-        mime_type = mime_map.get(suffix, "image/png")
+        image_data = base64.b64encode(raw_image_data).decode("utf-8")
 
-        image_data = base64.b64encode(src.read_bytes()).decode("utf-8")
-
+        if limit_error := _generation_limiter.reserve(1, max_generations):
+            return json.dumps({"error": limit_error})
         client = _client()
         response = client.models.generate_content(
             model=model,
@@ -329,9 +466,11 @@ def generate_variations(
     name: str,
     count: int = 3,
     image_path: str | None = None,
-    model: str = "gemini-3.1-flash-image-preview",
+    model: str = "gemini-3.1-flash-lite-image",
     aspect_ratio: str = "1:1",
     output_dir: str = _DEFAULT_OUTPUT_DIR,
+    max_generations: int = 5,
+    allowed_input_root: str | None = None,
 ) -> str:
     """Generate multiple variations of an image prompt or reference image.
 
@@ -345,6 +484,8 @@ def generate_variations(
         model: Gemini model to use.
         aspect_ratio: Image aspect ratio.
         output_dir: Directory to save generated images.
+        max_generations: Maximum billable generation attempts for this server session.
+        allowed_input_root: Required root boundary when image_path is used.
 
     Returns:
         JSON with all file paths and details.
@@ -353,6 +494,18 @@ def generate_variations(
         if err := _validate_model(model):
             return err
         count = max(1, min(4, count))
+        source_image = None
+        source_image_data = None
+        source_mime_type = None
+        if image_path:
+            if not allowed_input_root:
+                return json.dumps({"error": "allowed_input_root is required for local image uploads."})
+            source_image, raw_image_data, source_mime_type = _load_allowed_input(
+                image_path, allowed_input_root
+            )
+            source_image_data = base64.b64encode(raw_image_data).decode("utf-8")
+        if limit_error := _generation_limiter.reserve(count, max_generations):
+            return json.dumps({"error": limit_error})
         client = _client()
         all_saved = []
 
@@ -360,17 +513,13 @@ def generate_variations(
             variation_prompt = prompt if i == 0 else f"{prompt} (variation {i + 1}, explore a different composition)"
 
             contents: list = []
-            if image_path:
-                src = Path(image_path).expanduser().resolve()
-                if not src.exists():
-                    return json.dumps({"error": f"Image not found: {src}"})
-                suffix = src.suffix.lower()
-                mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
-                mime_type = mime_map.get(suffix, "image/png")
-                image_data = base64.b64encode(src.read_bytes()).decode("utf-8")
+            if source_image is not None:
                 contents.append(
                     types.Part(
-                        inline_data=types.Blob(mime_type=mime_type, data=image_data)
+                        inline_data=types.Blob(
+                            mime_type=source_mime_type,
+                            data=source_image_data,
+                        )
                     )
                 )
 
@@ -413,7 +562,9 @@ def get_generation_stats() -> str:
     Returns:
         JSON with generation count, cost estimate, and last model used.
     """
-    return json.dumps(_session_stats)
+    return json.dumps(
+        {**_session_stats, "generation_attempt_count": _generation_limiter.attempt_count}
+    )
 
 
 if __name__ == "__main__":

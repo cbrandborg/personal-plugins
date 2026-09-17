@@ -1,9 +1,9 @@
 [
-  {"query": "create a new chapter 10 called 'Decaying Monastery'", "should_trigger": true},
+  {"query": "create a new chapter 10 called 'The Ruined Monastery'", "should_trigger": true},
   {"query": "scaffold chapter 11 for a new campaign arc, name it 'The Return Home'", "should_trigger": true},
   {"query": "add a new chapter to this vault — chapter 12, call it 'Epilogue'", "should_trigger": true},
-  {"query": "I need to start a new chapter in The Fractured Crown campaign, chapter 5 'The Broken Tower'", "should_trigger": true},
-  {"query": "/dm-kit:scaffold-chapter 11 'The Decaying Monastery'", "should_trigger": true},
+  {"query": "I need to start chapter 5 'The Broken Tower' in the Shattered Compass campaign", "should_trigger": true},
+  {"query": "/dm-kit:scaffold-chapter 11 'The Ruined Monastery'", "should_trigger": true},
   {"query": "set up the folder and canvas for chapter 10", "should_trigger": true},
   {"query": "make a new chapter folder with a blank canvas and starter arrival scene", "should_trigger": true},
   {"query": "I want a new chapter container for the finale arc", "should_trigger": true},

@@ -1,15 +1,15 @@
 ---
 name: dnd-lookup
-description: "**MUST be invoked for any D&D 5e mechanics question — creatures, spells, rules, DCs, CRs, conditions, classes, races, feats, magic items, character options — even in natural phrasings.** Auto-triggers on: 'what's the CR of [X]', 'how much HP does [Y] have', 'how much HP does a [monster] have', 'what does [spell] do', 'what's the DC for [W]', 'what DC should I set', 'is this a [skill] check', 'what level is [spell]', 'what monster would fit', 'what's the AC/HP/attack of', 'what's the AC of', 'what condition is', 'what does [class/race/feat] give', 'look up', 'look up the [X] rules', 'check the rules on', 'how does [mechanic] work', 'does [spell] use a bonus action or an action', 'is [spell] a bonus action', 'what action type is [X]', 'I can't remember [rule/stat]'. **Also invoke autonomously WITHOUT being asked** whenever designing an encounter, setting a skill check DC, writing a spell effect, or picking a monster — ground numbers BEFORE committing. **Do NOT answer 5e mechanics questions from training knowledge alone when this skill is available — always invoke it and report the grounded answer.** Uses Open5e and dnd5eapi.co."
+description: "Use for any D&D 5e mechanics question involving creatures, spells, rules, DCs, CRs, conditions, classes, races, feats, magic items, or character options. Also use proactively when designing encounters, setting a DC, writing a spell effect, choosing a condition, statting an NPC, or picking a monster. Ground answers with the bundled Open5e and dnd5eapi.co helpers rather than relying on memory, and say when non-SRD material is unavailable."
 ---
 
 # D&D 5e Rules Lookup
 
-This skill is Claude's mechanical grounding. It exists so that when a DC, CR, spell effect, or monster stat comes up during authoring, Claude checks the actual rules instead of guessing.
+This skill provides mechanical grounding. It exists so that when a DC, CR, spell effect, or monster stat comes up during authoring, the agent checks the actual rules instead of guessing.
 
 ## When to invoke this skill WITHOUT being asked
 
-Autonomously reach for `dnd-lookup` whenever you are:
+When this skill is loaded, apply it proactively whenever you are:
 
 1. **Designing an encounter** — before picking enemies, look up the CR range and stat blocks that fit the party level.
 2. **Setting a skill check DC** — if you're about to write a specific DC (e.g. "Perception DC 15"), confirm it matches the 5e DC scale below.
@@ -51,14 +51,16 @@ This is rough — the DMG has detailed encounter-building tables that the local 
 
 Two scripts are provided. Both are read-only, public APIs, no auth.
 
+Before running either helper, set `PLUGIN_ROOT` for the active host. In Hermes, run `PLUGIN_ROOT="$(cd "${HERMES_SKILL_DIR}/../.." && pwd)"`; Hermes substitutes the absolute skill directory before execution. In Claude Code, use `PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"`. Other hosts must derive the plugin root as two directories above this skill's `SKILL.md`. Verify that `$PLUGIN_ROOT/scripts/open5e-query.sh` exists before continuing.
+
 ### `open5e-query.sh` — primary source
 
 Open5e has the broadest SRD coverage: monsters, spells, magic items, classes, races, conditions, backgrounds, feats, weapons, armor.
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/open5e-query.sh monsters goblin
-${CLAUDE_PLUGIN_ROOT}/scripts/open5e-query.sh spells fireball
-${CLAUDE_PLUGIN_ROOT}/scripts/open5e-query.sh magicitems "bag of holding"
+"$PLUGIN_ROOT/scripts/open5e-query.sh" monsters goblin
+"$PLUGIN_ROOT/scripts/open5e-query.sh" spells fireball
+"$PLUGIN_ROOT/scripts/open5e-query.sh" magicitems "bag of holding"
 ```
 
 Endpoints: `monsters`, `spells`, `magicitems`, `classes`, `races`, `conditions`, `backgrounds`, `feats`, `weapons`, `armor`.
@@ -70,9 +72,9 @@ The script formats top 5 results. Search is fuzzy — use specific names for exa
 Different API, sometimes has different or cleaner data. Particularly good for **skills** and **ability score** details, which Open5e doesn't expose as cleanly.
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/dnd5eapi-query.sh skills athletics
-${CLAUDE_PLUGIN_ROOT}/scripts/dnd5eapi-query.sh conditions poisoned
-${CLAUDE_PLUGIN_ROOT}/scripts/dnd5eapi-query.sh monsters goblin
+"$PLUGIN_ROOT/scripts/dnd5eapi-query.sh" skills athletics
+"$PLUGIN_ROOT/scripts/dnd5eapi-query.sh" conditions poisoned
+"$PLUGIN_ROOT/scripts/dnd5eapi-query.sh" monsters goblin
 ```
 
 Endpoints: `monsters`, `spells`, `skills`, `conditions`, `rules`, `magic-items`, `classes`.

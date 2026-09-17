@@ -117,7 +117,7 @@ For Gemini authentication and standalone MCP setup, see [its README](plugins/gem
 ```bash
 python3.13 -m venv .venv
 . .venv/bin/activate
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes -r requirements-dev.lock
 PYTHON=python just ci
 ```
 
@@ -125,10 +125,10 @@ CI validates the registries and skills, exercises importer failure handling and
 bundled scripts, tests actual Gemini helpers, and runs the local import/update
 example. It makes no model API calls. [Testing details](docs/testing.md).
 
-The weekly sync job follows upstream, runs offline checks, and commits changes to
-`main`. This is unattended personal automation, **not human review of upstream
-instructions**. Inspect updates before using them; disable the schedule in your
-fork if you prefer manual updates.
+The weekly sync job follows upstream, runs offline checks, and opens or updates a
+pull request. It never publishes synchronized instructions directly to `main`.
+Review every instruction change before merging; disable the schedule in your fork
+if you prefer manual updates.
 
 ## Layout
 
