@@ -6,6 +6,7 @@ import importlib
 from typing import Any, Mapping, Optional
 
 from .env_guard import blocked_reason
+from .op_guard import DENY, tool_decision
 
 
 def _hermes_session_cwd(task_id: Any) -> Optional[str]:
@@ -25,7 +26,17 @@ def _pre_tool_call(
     args: Optional[Mapping[str, Any]] = None,
     **kwargs: Any,
 ):
-    """Block supported tool calls that resolve to a protected .env file."""
+    """Block .env access and deny-tier 1Password CLI calls.
+
+    Hermes hooks can only block, so ask-tier `op` calls pass through to the
+    1Password app's own approval prompt.
+    """
+    try:
+        op_decision = tool_decision(tool_name, args)
+    except Exception:
+        op_decision = None
+    if op_decision and op_decision[0] == DENY:
+        return {"action": "block", "message": f"1Password CLI blocked: {op_decision[1]}"}
     cwd = kwargs.get("cwd")
     if not isinstance(cwd, str) or not cwd:
         cwd = _hermes_session_cwd(kwargs.get("task_id") or kwargs.get("session_id"))
