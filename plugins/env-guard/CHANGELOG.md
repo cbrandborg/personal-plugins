@@ -1,3 +1,13 @@
+## 0.3.1 - 2026-10-01
+
+- Stop the `.env` command tokenizer from treating `a#` as a comment, which hid
+  the rest of the line (`echo a#; cat .env`).
+- Recognize combined shell flags such as `bash -lc` and `sh -ec`, quoted `eval`
+  arguments, `$(...)`, and backticks when looking for nested commands.
+- Fall back to plain words on unbalanced quotes instead of skipping the check.
+- Check the Claude Code Grep tool's `path` and `glob`.
+- Deny instead of allowing when the `.env` check crashes on its input.
+
 ## 0.3.0 - 2026-10-01
 
 - Guard 1Password CLI (`op`) commands, shared by the Claude Code and Hermes adapters.

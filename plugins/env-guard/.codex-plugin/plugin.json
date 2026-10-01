@@ -1,6 +1,6 @@
 {
   "name": "env-guard",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Protect .env files and 1Password CLI secrets from accidental agent access.",
   "author": {
     "name": "Christian Brandborg",
