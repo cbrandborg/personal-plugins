@@ -1,10 +1,12 @@
-"""1Password CLI (`op`) rules shared by the Claude Code and Hermes adapters.
+"""1Password CLI (`op`) rules shared by the Claude Code, Codex, and Hermes adapters.
 
 Every `op` invocation in a shell command is classified as deny, ask, or pass.
-Deny covers commands that print secret values, share items, delete
-permanently, or create long-lived access. Ask covers commands that use or
-change secrets without printing them, and commands the hook cannot verify.
-Everything else passes, and the 1Password app's own approval still applies.
+Deny covers only commands known to put a secret where an agent can read it:
+printing values, writing them to files, sharing items, or creating tokens.
+Every other op command that contacts 1Password asks, because the 1Password
+approval prompt doesn't say which command is asking; a Claude Code prompt is
+the only place the user sees it. Commands the hook cannot verify also ask.
+Only commands that never contact 1Password, such as `op whoami`, pass.
 
 The rules come from testing op 2.32 with 1Password desktop app integration:
 plain `op item get` prints one-time codes, `--format json` on get, create, and
@@ -38,6 +40,9 @@ NESTED_SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "ash", "fish"}
 MAX_COMMAND_LENGTH = 100_000
 MAX_ARGS = 64
 MAX_DEPTH = 3
+
+# Global flags that consume the next token unless written as --flag=value.
+VALUE_FLAGS = {"--account", "--config", "--encoding", "--format", "--session"}
 
 # `op` as a command word: not part of op_guard, op://, op.json, or ~/.config/op/.
 OP_WORD = re.compile(r"(?i)(?<![\w.-])op(?:\.exe)?(?![\w:./-])")
@@ -118,12 +123,17 @@ def _json_output(head: list[str], json_env: bool) -> bool:
     return False
 
 
-def _rules(
+# op commands that never contact 1Password, so they cannot trigger its
+# approval prompt. Matched exactly, after dropping global flag values.
+LOCAL_COMMANDS = {("whoami",), ("signout",), ("update",), ("account", "list")}
+
+
+def _exposes(
     words: set[str],
     flags: set[str],
-    archived: bool,
     json_output: bool,
 ) -> Iterator[Decision]:
+    """Deny tier: commands known to put a secret where an agent can read it."""
     if "read" in words:
         yield DENY, f"`op read` prints secret values into the transcript. {USE_RUN}"
     if "inject" in words:
@@ -131,62 +141,66 @@ def _rules(
             "`op inject` writes resolved secrets to stdout or a plaintext file. "
             f"{USE_RUN}"
         )
-    for group in ("service-account", "connect", "events-api"):
-        if group in words:
-            yield DENY, f"`op {group}` creates or manages long-lived access tokens."
+    if "run" in words and "--no-masking" in flags:
+        yield DENY, "`op run --no-masking` prints secrets unmasked."
+    if "signin" in words and "--raw" in flags:
+        yield DENY, "`op signin --raw` prints a session token."
+    if "create" in words:
+        for group in ("service-account", "connect", "events-api"):
+            if group in words:
+                yield DENY, (
+                    f"`op {group} ... create` prints or writes a new access token "
+                    "or credentials file."
+                )
+    if "item" in words:
+        if "get" in words:
+            yield DENY, (
+                "`op item get` prints secrets even without --reveal: plain "
+                "output shows one-time codes and --format json shows "
+                f"passwords and TOTP seeds. {USE_RUN}"
+            )
+        if "share" in words:
+            yield DENY, "`op item share` creates a link anyone with the URL can open."
+        if json_output:
+            for sub in ("create", "edit", "move"):
+                if sub in words:
+                    yield DENY, (
+                        f"`op item {sub}` with JSON output prints passwords and "
+                        "TOTP seeds."
+                    )
+    if "document" in words and "get" in words:
+        yield DENY, "`op document get` downloads a stored file."
+
+
+def _needs_approval(words: set[str], archived: bool) -> Iterator[Decision]:
+    """Ask tier with a specific reason. Unlisted commands get a generic one."""
     if "run" in words:
-        if "--no-masking" in flags:
-            yield DENY, "`op run --no-masking` prints secrets unmasked."
-        elif "plugin" in words:
+        if "plugin" in words:
             yield ASK, "`op plugin run` hands stored credentials to another CLI."
         else:
             yield ASK, (
                 "`op run` hands secrets to a program that can still print them. "
                 "Masking only hides exact matches."
             )
-    if "signin" in words and "--raw" in flags:
-        yield DENY, "`op signin --raw` prints a session token."
-
     for group in ("item", "document"):
         if group not in words:
             continue
-        if "get" in words:
-            if group == "item":
-                yield DENY, (
-                    "`op item get` prints secrets even without --reveal: plain "
-                    "output shows one-time codes and --format json shows "
-                    f"passwords and TOTP seeds. {USE_RUN}"
-                )
-            else:
-                yield DENY, "`op document get` downloads a stored file."
-        if "share" in words:
-            yield DENY, "`op item share` creates a link anyone with the URL can open."
         if "delete" in words:
             if archived:
                 yield ASK, f"`op {group} delete --archive` moves it to the Archive."
             else:
-                yield DENY, (
-                    f"`op {group} delete` without an unambiguous --archive "
-                    "deletes permanently."
-                )
+                yield ASK, f"`op {group} delete` deletes permanently."
         for sub in ("create", "edit", "move"):
-            if sub not in words:
-                continue
-            if group == "item" and json_output:
-                yield DENY, (
-                    f"`op item {sub}` with JSON output prints passwords and TOTP "
-                    "seeds."
-                )
-            else:
+            if sub in words:
                 yield ASK, f"`op {group} {sub}` changes vault contents."
         if "list" in words:
             yield ASK, f"`op {group} list` shows every title in the vault."
-
+    if words & {"grant", "revoke"}:
+        yield ASK, "`op ... grant/revoke` changes who can open a vault or group."
     changes = words & {"create", "edit", "delete"}
-    if "vault" in words and changes:
-        yield DENY, "`op vault create/edit/delete` changes vaults."
-    if words & {"grant", "revoke"} and words & {"vault", "group", "user"}:
-        yield DENY, "`op ... grant/revoke` changes who can open a vault or group."
+    for group in ("vault", "group"):
+        if group in words and changes:
+            yield ASK, f"`op {group} create/edit/delete` changes 1Password {group}s."
     if "user" in words and words & {
         "provision",
         "confirm",
@@ -195,11 +209,31 @@ def _rules(
         "reactivate",
         "delete",
     }:
-        yield DENY, "`op user` changes 1Password users."
-    if "group" in words and changes:
-        yield DENY, "`op group create/edit/delete` changes 1Password groups."
+        yield ASK, "`op user` changes 1Password users."
     if "account" in words and words & {"add", "forget"}:
-        yield DENY, "`op account add/forget` changes which accounts op can use."
+        yield ASK, "`op account add/forget` changes which accounts op can use."
+
+
+def _local_only(head: list[str]) -> bool:
+    """True for op commands that never contact 1Password.
+
+    Passing is a relaxation, so this matches exact command shapes only. Values
+    of global flags are dropped first, as op itself consumes them
+    (`op whoami --account x`).
+    """
+    words: list[str] = []
+    skip_value = False
+    for arg in head:
+        if skip_value:
+            skip_value = False
+            continue
+        if arg.startswith("-"):
+            skip_value = _flag_name(arg).lower() in VALUE_FLAGS and "=" not in arg
+            continue
+        words.append(ALIASES.get(arg.lower(), arg.lower()))
+    if tuple(words) in LOCAL_COMMANDS:
+        return True
+    return len(words) <= 2 and bool(words) and words[0] == "completion"
 
 
 def _strictest(decisions: Iterable[Optional[Decision]]) -> Optional[Decision]:
@@ -241,8 +275,17 @@ def classify(args: list[str], json_env: bool = False) -> Optional[Decision]:
     if not words:
         return None
     flags = {_flag_name(arg).lower() for arg in head if arg.startswith("-")}
-    return _strictest(
-        _rules(words, flags, _archived(head), _json_output(head, json_env))
+    denied = _strictest(_exposes(words, flags, _json_output(head, json_env)))
+    if denied:
+        return denied
+    asked = _strictest(_needs_approval(words, _archived(head)))
+    if asked:
+        return asked
+    if _local_only(head):
+        return None
+    return ASK, (
+        "This op command contacts 1Password, whose approval prompt doesn't say "
+        "which command is asking."
     )
 
 
@@ -331,9 +374,9 @@ def _scan(
             decisions.append(decision)
             found = found or nested_found
             hidden = hidden or nested_hidden
-        elif name != "op" and (
-            OP_WORD.search(_probe(token)) or "op://" in token.lower()
-        ):
+        elif name != "op" and OP_WORD.search(_probe(token)):
+            # op:// references are only suspicious without a real op call,
+            # which the "not found" check in scan_command covers.
             hidden = True
 
         if name in NESTED_SHELLS:

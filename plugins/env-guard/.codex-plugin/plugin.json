@@ -1,16 +1,17 @@
 {
   "name": "env-guard",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Protect .env files and 1Password CLI secrets from accidental agent access.",
   "author": {
     "name": "Christian Brandborg",
     "url": "https://github.com/cbrandborg"
   },
   "repository": "https://github.com/cbrandborg/personal-plugins",
+  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "Env Guard",
     "shortDescription": "Protect .env files and 1Password secrets from accidental agent access.",
-    "longDescription": "A safety hook bundle that blocks accidental reads and edits of real .env files and 1Password CLI commands that print or leak secrets.",
+    "longDescription": "A safety hook bundle that blocks accidental reads and edits of real .env files and blocks 1Password CLI commands. Codex hooks cannot ask for approval, so every op command that contacts 1Password is blocked; only local ones such as op whoami run.",
     "developerName": "Christian Brandborg",
     "category": "Security",
     "capabilities": [

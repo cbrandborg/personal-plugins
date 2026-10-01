@@ -1,7 +1,7 @@
 {
   "name": "env-guard",
-  "version": "0.3.1",
-  "description": "PreToolUse hook that blocks Claude Code from reading, writing, or editing .env files (with .env.example/.sample/.template/.dist allowed), denies 1Password CLI commands that print or leak secrets, and asks before op commands that use or change them. Tokenizes commands, expands globs, and inspects nested shells.",
+  "version": "0.4.0",
+  "description": "PreToolUse hook that blocks Claude Code from reading, writing, or editing .env files (with .env.example/.sample/.template/.dist allowed), denies 1Password CLI commands that expose secrets, and asks before every other op command that contacts 1Password. Tokenizes commands, expands globs, and inspects nested shells.",
   "author": {
     "name": "Christian Brandborg",
     "url": "https://github.com/cbrandborg"

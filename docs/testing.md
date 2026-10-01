@@ -37,7 +37,7 @@ they do not install them into either agent application.
 | Imported skills | Source/revision tracking and basic frontmatter | Quality or behavior of upstream instructions |
 | dm-kit | Deterministic canvas helper/hook behavior | Agent completion rates or live rules API behavior |
 | Gemini | Production helper functions | Successful live image generation or host MCP wiring |
-| env-guard | Specific accidental-access and `op` command checks | A sandbox or security boundary; Codex hook support; behavior of future op versions |
+| env-guard | Specific accidental-access and `op` command checks; the Codex adapter with synthetic payloads | A sandbox or security boundary; Codex loading and trusting the plugin hook in a live session; behavior of future op versions |
 | xmind-campaign | Basic package validation | Runtime behavior; treated as legacy |
 
 `evals/dm-kit/*.json` are positive/negative trigger examples. They are not a

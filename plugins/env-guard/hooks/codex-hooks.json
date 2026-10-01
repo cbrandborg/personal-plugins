@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/codex-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "env-guard"
+          }
+        ]
+      }
+    ]
+  }
+}

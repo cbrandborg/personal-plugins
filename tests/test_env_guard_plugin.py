@@ -218,6 +218,7 @@ class ClaudeCommandHookTest(unittest.TestCase):
         for command, decision in (
             ("op read op://Employee/item/password", "deny"),
             ("op run -- ./deploy.sh", "ask"),
+            ("op vault list", "ask"),
         ):
             with self.subTest(command=command):
                 result = run_claude_hook(command)
@@ -227,7 +228,7 @@ class ClaudeCommandHookTest(unittest.TestCase):
                 self.assertIn("1Password CLI", output["permissionDecisionReason"])
 
     def test_command_hook_is_silent_for_harmless_op(self):
-        result = run_claude_hook("op vault list")
+        result = run_claude_hook("op whoami")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
@@ -330,7 +331,7 @@ class OpGuardTest(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(self.decision(command), expected)
 
-    def test_denies_commands_that_print_or_leak_secrets(self):
+    def test_denies_commands_that_expose_secrets(self):
         self.assert_decisions(
             "deny",
             (
@@ -347,18 +348,12 @@ class OpGuardTest(unittest.TestCase):
                 "op inject -i tpl.yml -o out.yml",
                 "op run --no-masking -- printenv TOKEN",
                 "op item share item --expires-in 1h",
-                "op item delete item",
-                "op item rm item",
                 "op document get doc --out-file contract.pdf",
                 "op signin --raw",
                 "op service-account create bot",
                 "op connect token create t --server s",
+                "op connect server create s",
                 "op events-api create e",
-                "op vault create v",
-                "op vault user grant --vault v --user u",
-                "op group user grant --group g --user u",
-                "op user delete u",
-                "op account forget team",
             ),
         )
 
@@ -387,24 +382,34 @@ class OpGuardTest(unittest.TestCase):
                 "op item --vault template get x --vault Private",
                 "op item --vault list get x --vault Private",
                 "op --file-mode whoami read op://v/i/f --file-mode 0600",
+            ),
+        )
+        self.assert_decisions(
+            "ask",
+            (
                 "op vault --name list edit v --name new",
                 "op group --description list delete g",
+                "op --account whoami vault list",
+                "op --config whoami user list",
             ),
         )
 
-    def test_archive_must_be_unambiguous_to_relax_delete(self):
-        self.assert_decisions(
-            "deny",
-            (
-                "op item delete item --archive=false",
-                "op item delete item --archive=f",
-                "op item delete item --archive=F",
-                "op item delete item --archive --archive=false",
-                "op item delete item # --archive",
-                "op item delete item >--archive",
-            ),
-        )
-        self.assert_decisions("ask", ("op item delete item --archive 2>&1",))
+    def test_delete_reason_trusts_only_an_unambiguous_archive(self):
+        for command, reason in (
+            ("op item delete item", "permanently"),
+            ("op item rm item", "permanently"),
+            ("op item delete item --archive=false", "permanently"),
+            ("op item delete item --archive=f", "permanently"),
+            ("op item delete item --archive=F", "permanently"),
+            ("op item delete item --archive --archive=false", "permanently"),
+            ("op item delete item # --archive", "permanently"),
+            ("op item delete item >--archive", "permanently"),
+            ("op item delete item --archive 2>&1", "Archive"),
+        ):
+            with self.subTest(command=command):
+                decision = self.op.scan_command(command)
+                self.assertEqual(decision[0], "ask")
+                self.assertIn(reason, decision[1])
 
     def test_denies_json_output_from_item_changes(self):
         self.assert_decisions(
@@ -459,8 +464,30 @@ class OpGuardTest(unittest.TestCase):
                 "op item delete item --archive",
                 "op document create file.pdf",
                 "op document list",
+                "op vault list",
+                "op vault get Employee",
+                "op vault create v",
+                "op vault user grant --vault v --user u",
+                "op vault user list --vault v",
+                "op group user grant --group g --user u",
+                "op user list",
+                "op user delete u",
+                "op account get",
+                "op account forget team",
+                "op signin",
+                "op service-account ratelimit",
+                "op connect token list",
+                "op plugin list",
             ),
         )
+
+    def test_op_reference_next_to_op_run_keeps_the_specific_reason(self):
+        decision = self.op.scan_command(
+            'TEST_SECRET="op://v/i/f" op run --account t -- printenv TEST_SECRET; '
+            'echo "exit=$?"'
+        )
+        self.assertEqual(decision[0], "ask")
+        self.assertIn("`op run`", decision[1])
 
     def test_asks_when_op_cannot_be_verified(self):
         nested = "op read op://v/i/f"
@@ -499,25 +526,26 @@ class OpGuardTest(unittest.TestCase):
         for command, expected in (
             ("op " * 20_000 + "; op read op://v/i/f", "deny"),
             ("x " + "-c " * 20_000 + "op read op://v/i/f", "deny"),
-            ("op vault list; " + "env " * 20_000, None),
-            ("op vault list | " + "a/" * 40_000, None),
+            ("op whoami; " + "env " * 20_000, None),
+            ("op whoami | " + "a/" * 40_000, None),
         ):
             with self.subTest(length=len(command), expected=expected):
                 started = time.monotonic()
                 self.assertEqual(self.decision(command), expected)
                 self.assertLess(time.monotonic() - started, 2)
 
-    def test_passes_metadata_and_unrelated_commands(self):
+    def test_passes_local_op_and_unrelated_commands(self):
         self.assert_decisions(
             None,
             (
                 "op whoami",
+                "op whoami --account team",
                 "op account list",
-                "op vault list",
                 "op signout",
-                "op signin",
+                "op signout --all",
                 "op --version",
-                "op vault user list --vault v",
+                "op completion zsh",
+                "op update",
                 "which op",
                 "brew upgrade op",
                 "cat ~/.config/op/config",
@@ -542,6 +570,69 @@ class OpGuardTest(unittest.TestCase):
                 self.assertIn("1Password CLI blocked", blocked["message"])
         asked = guard(tool_name="terminal", args={"command": "op run -- ./deploy.sh"})
         self.assertIsNone(asked)
+
+
+def run_codex_hook(tool_name, command, cwd=None):
+    payload = {
+        "tool_name": tool_name,
+        "tool_input": {"command": command},
+        "cwd": cwd or str(PLUGIN_ROOT),
+    }
+    return subprocess.run(
+        [sys.executable, str(PLUGIN_ROOT / "hooks" / "codex-guard.py")],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+class CodexHookTest(unittest.TestCase):
+    def test_blocks_deny_and_ask_tiers_because_codex_cannot_ask(self):
+        for command, cannot_ask in (
+            ("op read op://v/i/f", False),
+            ("op run -- ./deploy.sh", True),
+            ("op vault list", True),
+            ("echo 'op read op://v/i/f' | bash", True),
+            ("cat .env", False),
+        ):
+            with self.subTest(command=command):
+                result = run_codex_hook("Bash", command)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("blocked", result.stderr)
+                self.assertEqual("can't ask" in result.stderr, cannot_ask)
+
+    def test_allows_local_op_and_unrelated_commands(self):
+        for command in ("op whoami", "op account list", "ls -la", "git status"):
+            with self.subTest(command=command):
+                result = run_codex_hook("Bash", command)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stderr, "")
+
+    def test_blocks_apply_patch_to_env_files(self):
+        for path, blocked in ((".env.local", True), ("src/app.py", False)):
+            with self.subTest(path=path):
+                patch = f"*** Begin Patch\n*** Update File: {path}\n@@\n-a\n+b\n*** End Patch"
+                result = run_codex_hook("apply_patch", patch)
+                self.assertEqual(result.returncode, 2 if blocked else 0, result.stderr)
+
+    def test_crash_blocks_instead_of_failing_open(self):
+        result = run_codex_hook("Bash", "cat \u0000x")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("could not check", result.stderr)
+
+    def test_codex_manifest_uses_the_codex_hook_file(self):
+        manifest = json.loads(
+            (PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["hooks"], "./hooks/codex-hooks.json")
+        hooks = json.loads(
+            (PLUGIN_ROOT / "hooks" / "codex-hooks.json").read_text(encoding="utf-8")
+        )
+        command = hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+        self.assertIn("codex-guard.py", command)
+        self.assertIn("$PLUGIN_ROOT", command)
 
 
 if __name__ == "__main__":
