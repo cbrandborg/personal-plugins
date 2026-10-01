@@ -244,6 +244,67 @@ class ClaudeCommandHookTest(unittest.TestCase):
                 self.assertEqual(output["permissionDecision"], "deny")
 
 
+def load_env_guard():
+    spec = importlib.util.spec_from_file_location(
+        "env_guard_matcher", PLUGIN_ROOT / "env_guard.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class EnvMatcherHardeningTest(unittest.TestCase):
+    def setUp(self):
+        self.env = load_env_guard()
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.cwd = directory.name
+
+    def bash(self, command):
+        return self.env.blocked_reason("Bash", {"command": command}, self.cwd)
+
+    def test_blocks_env_reads_the_old_tokenizer_missed(self):
+        for command in (
+            "echo a#; cat .env",
+            "bash -lc 'cat .env'",
+            "sh -ec 'cat .env.local'",
+            "eval 'cat .env'",
+            'echo "$(cat .env)"',
+            'echo "`cat .env`"',
+            "true # don't\ncat .env",
+        ):
+            with self.subTest(command=command):
+                self.assertIsNotNone(self.bash(command))
+
+    def test_allows_templates_and_unrelated_commands(self):
+        for command in (
+            "cat .env.example",
+            "bash -lc 'ls -la'",
+            "eval 'echo hi'",
+            "true # don't\nls",
+        ):
+            with self.subTest(command=command):
+                self.assertIsNone(self.bash(command))
+
+    def test_grep_tool_cannot_search_env_files(self):
+        for args, blocked in (
+            ({"pattern": "KEY", "path": ".env"}, True),
+            ({"pattern": "KEY", "path": ".", "glob": ".env*"}, True),
+            ({"pattern": "KEY", "path": ".", "glob": "*.py"}, False),
+        ):
+            with self.subTest(args=args):
+                reason = self.env.blocked_reason("Grep", args, self.cwd)
+                self.assertEqual(reason is not None, blocked)
+
+    def test_claude_hook_denies_when_env_check_crashes(self):
+        result = run_claude_hook("cat \u0000x")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)["hookSpecificOutput"]
+        self.assertEqual(output["permissionDecision"], "deny")
+
+
 def load_op_guard():
     spec = importlib.util.spec_from_file_location(
         "env_guard_op_guard", PLUGIN_ROOT / "op_guard.py"

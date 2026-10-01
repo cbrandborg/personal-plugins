@@ -7,9 +7,11 @@ existing permission rules and sandbox restrictions.
 
 ## Behavior
 
-The hook checks supported file-tool paths and tokenizes Bash commands. It checks
-both the supplied basename and the resolved symlink target. It can recognize
-nested shell commands and expand path variables and globs.
+The hook checks supported file-tool paths (including the Grep tool's `path` and
+`glob`) and tokenizes Bash commands. It checks both the supplied basename and
+the resolved symlink target. It can recognize nested commands in `sh -c`,
+`bash -lc`, quoted `eval`, `$(...)`, and backticks, and expand path variables
+and globs. A crash while checking denies the call.
 
 Protected names: `.env`, `.envrc`, and `.env.*`, except `.env.example`,
 `.env.sample`, `.env.template`, and `.env.dist`. Never put credentials in these

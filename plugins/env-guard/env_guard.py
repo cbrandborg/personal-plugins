@@ -10,7 +10,9 @@ import shlex
 from typing import Any, Mapping, Optional
 
 DEFAULT_ALLOWED_TAILS = {"example", "sample", "template", "dist"}
-NESTED_SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "ash"}
+NESTED_SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "ash", "fish"}
+# -c alone or combined with other short flags, as in `bash -lc` or `sh -ec`.
+SHELL_COMMAND_FLAG = re.compile(r"-[A-Za-z]*c[A-Za-z]*")
 ASSIGN_RE = re.compile(r"^(?:[A-Za-z_]\w*|--?[A-Za-z][\w-]*)=(.+)$")
 V4A_PATH_RE = re.compile(
     r"(?m)^\*\*\*\s*(?:Add|Update|Delete)\s+File:\s*(.+?)\s*$"
@@ -26,6 +28,7 @@ FILE_TOOL_PATH_KEYS = {
     "Write": ("file_path",),
     "MultiEdit": ("file_path",),
     "NotebookEdit": ("notebook_path", "file_path"),
+    "Grep": ("path",),
     # Native Hermes file tools.
     "read_file": ("path",),
     "write_file": ("path",),
@@ -95,24 +98,41 @@ def protected_glob_reason(pattern: str) -> Optional[str]:
     return None
 
 
-def scan_command(command: str, cwd: str, depth: int = 0) -> Optional[str]:
-    if depth > 2 or not command:
-        return None
+def _command_tokens(command: str) -> list[str]:
     try:
         lexer = shlex.shlex(command, posix=True, punctuation_chars=True)
         lexer.whitespace_split = True
-        tokens = list(lexer)
+        # Bash only starts a comment at a word boundary; shlex would also
+        # start one inside `a#` and hide the rest of the line.
+        lexer.commenters = ""
+        return list(lexer)
     except ValueError:
-        return None
+        # Unbalanced quotes, often from an apostrophe in a comment. Fall back
+        # to plain words rather than skipping the check.
+        return [word.strip("'\"") for word in command.split()]
 
+
+def scan_command(command: str, cwd: str, depth: int = 0) -> Optional[str]:
+    if not command:
+        return None
+    if depth > 2:
+        return "nested shells too deep to check" if ".env" in command else None
+    tokens = _command_tokens(command)
+
+    seen_shell = False
     for index, token in enumerate(tokens):
+        previous = tokens[index - 1] if index else ""
+        nested = None
+        if previous == "eval" or (seen_shell and SHELL_COMMAND_FLAG.fullmatch(previous)):
+            nested = token
+        elif "$(" in token or "`" in token:
+            nested = token.replace("$(", " ; ").replace("`", " ; ").replace(")", " ; ")
+        if nested is not None:
+            reason = scan_command(nested, cwd, depth + 1)
+            if reason:
+                return f"nested command -> {reason}"
         if os.path.basename(token) in NESTED_SHELLS:
-            for option_index in range(index + 1, len(tokens) - 1):
-                if tokens[option_index] == "-c":
-                    reason = scan_command(tokens[option_index + 1], cwd, depth + 1)
-                    if reason:
-                        return f"nested {token} -c -> {reason}"
-                    break
+            seen_shell = True
 
     for token in tokens:
         reason = protected_path_reason(token, cwd)
@@ -151,8 +171,9 @@ def blocked_reason(
                 if reason := protected_path_reason(path, base_cwd):
                     return f"patch on {reason}"
 
-    if tool_name == "search_files":
-        file_glob = arguments.get("file_glob")
+    glob_key = {"search_files": "file_glob", "Grep": "glob"}.get(tool_name)
+    if glob_key:
+        file_glob = arguments.get(glob_key)
         if isinstance(file_glob, str) and file_glob:
             if reason := protected_glob_reason(file_glob):
                 return reason

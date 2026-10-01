@@ -1,5 +1,5 @@
 name: env-guard
-version: 0.3.0
+version: 0.3.1
 description: "Best-effort guard against accidental reads and writes of protected .env files and 1Password CLI commands that print or leak secrets. Supports native Hermes tools and the existing Claude Code hook."
 author: Christian Brandborg
 license: 0BSD

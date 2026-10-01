@@ -55,7 +55,7 @@ def main() -> None:
             cwd if isinstance(cwd, str) and cwd else None,
         )
     except Exception:
-        reason = None
+        reason = "the .env check failed on this input"
     if reason:
         emit(DENY, f".env blocked: {reason}")
         return

@@ -40,7 +40,10 @@ def _pre_tool_call(
     cwd = kwargs.get("cwd")
     if not isinstance(cwd, str) or not cwd:
         cwd = _hermes_session_cwd(kwargs.get("task_id") or kwargs.get("session_id"))
-    reason = blocked_reason(tool_name, args, cwd if isinstance(cwd, str) else None)
+    try:
+        reason = blocked_reason(tool_name, args, cwd if isinstance(cwd, str) else None)
+    except Exception:
+        reason = "the .env check failed on this input"
     if reason:
         return {"action": "block", "message": f".env blocked: {reason}"}
     return None
