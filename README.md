@@ -84,7 +84,7 @@ See [third-party attribution](THIRD_PARTY.md).
 | `mattpocock-productivity` | Matt Pocock's `grill-me`, `grilling`, `handoff`, `teach`, `writing-great-skills`, and `wayfinder`, packaged here | Imported; upstream revisions tracked |
 | `dm-kit` | My Obsidian campaign-authoring workflows and canvas scripts | Experimental; offline canvas regressions |
 | `gemini-images` | My Gemini MCP integration and image workflows | Experimental; offline helper tests, opt-in live API tests |
-| `env-guard` | My accidental `.env` access check | Experimental Claude hook; not a security boundary |
+| `env-guard` | My accidental `.env` access and 1Password CLI (`op`) secret-exposure check | Experimental Claude and Hermes hook; not a security boundary |
 | `xmind-campaign` | My older XMind-to-Obsidian migration workflows | Legacy; not part of the current automated test coverage |
 
 My contribution to the imported bundle is packaging, normalization, and update

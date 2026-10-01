@@ -1,7 +1,7 @@
 {
   "name": "env-guard",
-  "version": "0.2.0",
-  "description": "Protect .env files from accidental agent reads and edits.",
+  "version": "0.3.0",
+  "description": "Protect .env files and 1Password CLI secrets from accidental agent access.",
   "author": {
     "name": "Christian Brandborg",
     "url": "https://github.com/cbrandborg"
@@ -9,8 +9,8 @@
   "repository": "https://github.com/cbrandborg/personal-plugins",
   "interface": {
     "displayName": "Env Guard",
-    "shortDescription": "Protect .env files from accidental agent access.",
-    "longDescription": "A safety hook bundle that blocks accidental reads and edits of real .env files.",
+    "shortDescription": "Protect .env files and 1Password secrets from accidental agent access.",
+    "longDescription": "A safety hook bundle that blocks accidental reads and edits of real .env files and 1Password CLI commands that print or leak secrets.",
     "developerName": "Christian Brandborg",
     "category": "Security",
     "capabilities": [

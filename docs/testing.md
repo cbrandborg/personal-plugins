@@ -18,6 +18,8 @@ PYTHON=python just ci
   paths outside the vault, malformed JSON, preservation of nodes, and exact hook references.
 - Env-guard checks using synthetic files: direct paths, symlinks, nested shells,
   and allowed template paths. These do not establish comprehensive access control.
+- Env-guard `op` command classification: deny, ask, and pass cases, known bypass
+  constructs, and timing on long commands. No test runs the real 1Password CLI.
 - Real Hermes Plugin Doctor validation for every manifested bundle.
 - Locked Gemini helper and server-limit tests, without API calls.
 - Gemini `uv.lock` freshness plus a locked runtime import smoke test using uv 0.12.15.
@@ -35,7 +37,7 @@ they do not install them into either agent application.
 | Imported skills | Source/revision tracking and basic frontmatter | Quality or behavior of upstream instructions |
 | dm-kit | Deterministic canvas helper/hook behavior | Agent completion rates or live rules API behavior |
 | Gemini | Production helper functions | Successful live image generation or host MCP wiring |
-| env-guard | Specific accidental-access checks | A sandbox or security boundary; Codex hook support |
+| env-guard | Specific accidental-access and `op` command checks | A sandbox or security boundary; Codex hook support; behavior of future op versions |
 | xmind-campaign | Basic package validation | Runtime behavior; treated as legacy |
 
 `evals/dm-kit/*.json` are positive/negative trigger examples. They are not a
