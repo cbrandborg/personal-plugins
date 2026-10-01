@@ -1,6 +1,6 @@
 # env-guard
 
-Experimental native Hermes plugin and Claude Code hook for catching accidental
+Experimental Claude Code, Codex, and native Hermes hook for catching accidental
 reads and edits of `.env` files and 1Password CLI (`op`) commands that expose
 secrets. This is a best-effort check, **not a security boundary**. Keep your
 existing permission rules and sandbox restrictions.
@@ -21,24 +21,33 @@ allowed template files.
 
 ## 1Password CLI (`op`)
 
-Bash and Hermes `terminal` commands that mention `op` are classified into three
-tiers. The rules come from testing op 2.32 with desktop app integration against
-a dummy item: plain `op item get` prints one-time codes, `--format json` on
-`get`, `create`, and `edit` prints passwords and TOTP seeds without `--reveal`,
-and `op run` masking only hides exact matches, so piping through `rev` reveals
-the secret.
+Shell commands that mention `op` are classified into three tiers. The rules
+come from testing op 2.32 with desktop app integration against a dummy item:
+plain `op item get` prints one-time codes, `--format json` on `get`, `create`,
+and `edit` prints passwords and TOTP seeds without `--reveal`, and `op run`
+masking only hides exact matches, so piping through `rev` reveals the secret.
 
-| Tier | Commands | Claude Code | Hermes |
+| Tier | Commands |
+|---|---|
+| Deny | Only commands known to expose a secret: `op read`, `op inject`, `op item get`, item create/edit/move with JSON output (`--format json` or `OP_FORMAT`), `op run --no-masking`, `op item share`, `op document get`, `op signin --raw`, and `create` under `service-account`, `connect`, or `events-api` (new tokens or credential files) |
+| Ask | Every other op command that contacts 1Password, such as `op run`, `op vault list`, item and document list/create/edit/move/delete, vault, user, group, and account changes, plus any op use the hook cannot verify |
+| Pass | Commands that never contact 1Password: `op whoami`, `op account list`, `op signout`, `op update`, `op completion`, `op --version` |
+
+The ask tier exists because the 1Password approval prompt says only which app
+is asking ("Allow Claude to get CLI access"), never which command. Asking in
+the agent first puts the exact command on screen before Touch ID.
+
+What each agent enforces:
+
+| Agent | Deny | Ask | Pass |
 |---|---|---|---|
-| Deny | `op read`, `op inject`, `op item get`, item create/edit/move with JSON output (`--format json` or `OP_FORMAT`), `op run --no-masking`, `op item share`, `op document get`, `op signin --raw`, `item`/`document delete` without an unambiguous `--archive`, `service-account`, `connect`, `events-api`, vault create/edit/delete, grant/revoke, user changes, `account add`/`forget` | Blocked | Blocked |
-| Ask | `op run`, `op plugin run`, item and document list/create/edit/move, `delete --archive`, and any `op` use the hook cannot verify | Permission prompt showing the command | Passes |
-| Pass | Other `op` commands, such as `whoami`, `account list`, `vault list`, `signout` | Passes | Passes |
+| Claude Code | Blocked | Permission prompt showing the command, also in auto mode | Runs |
+| Codex | Blocked | **Blocked**: Codex hooks can't ask, and an ask reply would let the command run | Runs |
+| Hermes | Blocked | Runs; Hermes hooks can only block, so only 1Password's prompt applies | Runs |
 
-The ask tier matters because the 1Password approval prompt does not show which
-command is asking, so a Claude Code prompt is the only place you see it. Use
-`op run` with `op://` references when a program needs a secret. Keep reference
-files under a name the `.env` check allows, such as `app.env`, because
-`op run --env-file .env` is blocked as `.env` access.
+Use `op run` with `op://` references when a program needs a secret. Keep
+reference files under a name the `.env` check allows, such as `app.env`,
+because `op run --env-file .env` is blocked as `.env` access.
 
 ### How `op` calls are matched
 
@@ -56,9 +65,10 @@ it, the result is ask: inside quoted strings or other languages, with `$'...'`,
 pipes into a shell, function definitions, unparseable quoting, more than three
 nested shells, or commands over 100,000 characters.
 
-`--archive` relaxes a delete from deny to ask only when every copy is truthy
-and comes before any `#` or redirection, because pflag keeps the last value and
-bash ignores comments.
+Deletes always ask. The prompt says "moves it to the Archive" only when every
+`--archive` is truthy and comes before any `#` or redirection, because pflag
+keeps the last value and bash ignores comments; otherwise it warns that the
+delete is permanent.
 
 ## Limitations
 
@@ -72,8 +82,13 @@ The `op` checks cannot see calls made from script files or aliases, or names
 built at runtime without any visible trace of op: `o=op; $o read` asks because
 `op` appears, and a command with an `op://` reference asks, but a glob such as
 `/opt/homebrew/bin/o? item get x` passes. An `op run` program you approve can
-still print the secret. The 1Password app's approval prompt remains the real gate. Hermes
-passes everything in the ask tier, including commands the hook cannot verify.
+still print the secret. The 1Password app's approval prompt remains the real
+gate. Hermes passes everything in the ask tier, including permanent deletes and
+commands the hook cannot verify.
+
+The `.env` check parses backtick spans as nested commands, so a shell command
+that carries Markdown with a backticked env file name, such as a heredoc that
+writes documentation, is blocked. Write such files with a file tool instead.
 
 Matching on words rather than order trades precision for safety. Expect false
 positives: `op item template get` is denied, `op item template list` asks, a
@@ -95,6 +110,18 @@ hermes plugins enable env-guard
 The root `plugin.yaml` and `__init__.py` register the native `pre_tool_call`
 guard. It covers Hermes `read_file`, `write_file`, `patch`, `search_files`, and
 `terminal` calls using their native `path`, `command`, and `workdir` arguments.
+
+## Install in Codex
+
+Codex loads plugin hooks from `hooks/codex-hooks.json`, which the Codex manifest
+points to. It runs `hooks/codex-guard.py` before `Bash` and `apply_patch` tool
+calls. That adapter blocks the deny and ask tiers and blocks when a check
+crashes, since Codex lets a command run on an ask reply, a timeout, or any
+exit code other than 2.
+
+Codex skips plugin hooks until you trust them in `/hooks`, and asks again
+after every change to the hook definition. `hooks = false` or
+`allow_managed_hooks_only` turns plugin hooks off.
 
 ## Install in Claude Code
 

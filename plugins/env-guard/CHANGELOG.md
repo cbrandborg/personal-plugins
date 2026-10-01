@@ -1,3 +1,15 @@
+## 0.4.0 - 2026-10-01
+
+- Deny only op commands known to expose a secret. Every other op command that
+  contacts 1Password now asks, including `op vault list`, permanent deletes,
+  and vault, user, group, and account changes, which used to pass or be denied.
+  Only local commands such as `op whoami` and `op account list` pass.
+- Add a Codex adapter (`hooks/codex-guard.py`, `hooks/codex-hooks.json`) that
+  blocks both the deny and ask tiers, checks `apply_patch` edits to env files,
+  and blocks when a check crashes.
+- Keep the specific `op run` reason when an `op://` reference sits next to the
+  call, instead of the generic "can't verify" message.
+
 ## 0.3.1 - 2026-10-01
 
 - Stop the `.env` command tokenizer from treating `a#` as a comment, which hid
