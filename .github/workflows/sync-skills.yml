@@ -26,13 +26,13 @@ jobs:
           python-version: "3.13"
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
-          version: "0.5.10"
+          version: "0.13.6"
       - name: Verify development lock freshness
         run: |
           uv pip compile requirements-dev.txt --generate-hashes --no-header \
             --output-file /tmp/requirements-dev.lock
           cmp -s requirements-dev.lock /tmp/requirements-dev.lock || {
-            echo "requirements-dev.lock is stale; regenerate it with uv 0.5.10."
+            echo "requirements-dev.lock is stale; regenerate it with uv 0.13.6."
             exit 1
           }
       - name: Sync registered upstream skills and bump changed plugin versions
