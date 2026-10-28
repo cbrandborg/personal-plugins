@@ -18,6 +18,14 @@ This repository packages the upstream content and removes
 of those skills. Review upstream notices when adding or updating imports; the
 importer does not automatically copy repository-level license files.
 
+## Elephant-Goldfish Model
+
+The `egm` marketplace entries point at
+[google/elephant-goldfish-model](https://github.com/google/elephant-goldfish-model)
+at a pinned commit. No EGM files are copied into this repository; installing the
+plugin fetches them from that repository under its
+[Apache-2.0 license](https://github.com/google/elephant-goldfish-model/blob/main/LICENSE).
+
 ## Other components
 
 The import/sync tooling and other plugin directories are maintained here by

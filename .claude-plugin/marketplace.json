@@ -39,6 +39,17 @@
       "author": {
         "name": "Christian Brandborg"
       }
+    },
+    {
+      "name": "egm",
+      "source": {
+        "source": "github",
+        "repo": "google/elephant-goldfish-model",
+        "sha": "f0ba151b252c9abf1318d9fe857a43265d06de89"
+      },
+      "author": {
+        "name": "Google"
+      }
     }
   ]
 }
