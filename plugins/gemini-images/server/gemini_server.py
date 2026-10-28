@@ -8,6 +8,7 @@ import re
 import stat
 import subprocess
 import sys
+import threading
 import warnings
 from pathlib import Path
 
@@ -15,9 +16,9 @@ from PIL import Image as PIL_Image
 
 from google import genai
 from google.genai import types
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("gemini-images")
+mcp = MCPServer("gemini-images")
 
 # Default output structure
 _DEFAULT_OUTPUT_DIR = "gemini-assets/outputs"
@@ -36,6 +37,11 @@ _session_stats = {
     "cost_estimate": 0.0,
     "last_model": None,
 }
+
+# MCP SDK 2 runs sync tools on worker threads, so concurrent calls can race on
+# the stats and on choosing the next free output filename.
+_stats_lock = threading.Lock()
+_save_lock = threading.Lock()
 
 from image_helpers import (
     GenerationLimiter, _SUPPORTED_MODELS, _validate_model, _slugify,
@@ -252,16 +258,17 @@ def _save_images(
 
     for part in response.candidates[0].content.parts:
         if part.inline_data and part.inline_data.mime_type.startswith("image/"):
-            if variation and is_iteration:
-                seq = _next_sequence(out, slug, variation)
-                filename = _build_filename(slug, variation, seq, "png")
-            else:
-                var = variation or _next_variation(out, slug)
-                filename = _build_filename(slug, var, None, "png")
-
-            filepath = out / filename
             pil_image = PIL_Image.open(io.BytesIO(part.inline_data.data))
-            pil_image.save(str(filepath), format="PNG")
+            with _save_lock:
+                if variation and is_iteration:
+                    seq = _next_sequence(out, slug, variation)
+                    filename = _build_filename(slug, variation, seq, "png")
+                else:
+                    var = variation or _next_variation(out, slug)
+                    filename = _build_filename(slug, var, None, "png")
+
+                filepath = out / filename
+                pil_image.save(str(filepath), format="PNG")
             saved.append(str(filepath))
 
     return saved
@@ -269,12 +276,13 @@ def _save_images(
 
 def _track(model: str, count: int = 1) -> None:
     """Update session stats after a generation."""
-    _session_stats["generation_count"] += count
-    _session_stats["last_model"] = model
     cost = _SUPPORTED_MODELS.get(model, 0.05) * count
-    _session_stats["cost_estimate"] = round(
-        _session_stats["cost_estimate"] + cost, 3
-    )
+    with _stats_lock:
+        _session_stats["generation_count"] += count
+        _session_stats["last_model"] = model
+        _session_stats["cost_estimate"] = round(
+            _session_stats["cost_estimate"] + cost, 3
+        )
 
 
 @mcp.tool()
@@ -562,8 +570,10 @@ def get_generation_stats() -> str:
     Returns:
         JSON with generation count, cost estimate, and last model used.
     """
+    with _stats_lock:
+        stats = dict(_session_stats)
     return json.dumps(
-        {**_session_stats, "generation_attempt_count": _generation_limiter.attempt_count}
+        {**stats, "generation_attempt_count": _generation_limiter.attempt_count}
     )
 
 

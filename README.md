@@ -86,6 +86,7 @@ See [third-party attribution](THIRD_PARTY.md).
 | `gemini-images` | My Gemini MCP integration and image workflows | Experimental; offline helper tests, opt-in live API tests |
 | `env-guard` | My accidental `.env` access and 1Password CLI (`op`) secret-exposure check | Experimental Claude and Hermes hook; not a security boundary |
 | `xmind-campaign` | My older XMind-to-Obsidian migration workflows | Legacy; not part of the current automated test coverage |
+| `egm` | Google's [Elephant-Goldfish Model](https://github.com/google/elephant-goldfish-model) for drafting specs and reviewing them with fresh-context reviewers; listed by reference, not packaged here | Referenced; pinned upstream commit, updated by hand |
 
 My contribution to the imported bundle is packaging, normalization, and update
 management. The skills themselves are credited to their upstream author.

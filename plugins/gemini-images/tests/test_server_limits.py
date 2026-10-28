@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -268,10 +272,12 @@ def test_local_upload_paths_must_be_absolute(tmp_path, monkeypatch):
 def test_fifo_is_rejected_without_blocking(tmp_path):
     fifo = tmp_path / "image.png"
     os.mkfifo(fifo)
+    # The alarm bounds only the open: importing the server's SDKs can take a second.
     code = (
-        "import sys; "
+        "import signal, sys; "
         f"sys.path.insert(0, {str(SERVER)!r}); "
         "import gemini_server; "
+        "signal.alarm(1); "
         f"gemini_server._load_allowed_input({str(fifo)!r}, {str(tmp_path)!r})"
     )
 
@@ -279,7 +285,7 @@ def test_fifo_is_rejected_without_blocking(tmp_path):
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
-        timeout=1,
+        timeout=30,
         check=False,
     )
 
@@ -319,3 +325,38 @@ def test_directory_swap_cannot_redirect_open_outside_root(tmp_path, monkeypatch)
     assert data == expected
     assert data != unexpected
     assert mime == "image/png"
+
+
+def _image_response() -> SimpleNamespace:
+    buffer = io.BytesIO()
+    Image.new("RGB", (2, 2), "green").save(buffer, format="PNG")
+    part = SimpleNamespace(
+        inline_data=SimpleNamespace(mime_type="image/png", data=buffer.getvalue()),
+        text=None,
+    )
+    return SimpleNamespace(candidates=[SimpleNamespace(content=SimpleNamespace(parts=[part]))])
+
+
+def test_concurrent_saves_with_same_name_do_not_overwrite(tmp_path, monkeypatch):
+    # MCP SDK 2 runs sync tools on worker threads; a slow lookup widens the race.
+    original_next_variation = gemini_server._next_variation
+
+    def slow_next_variation(output_dir, slug):
+        letter = original_next_variation(output_dir, slug)
+        time.sleep(0.2)
+        return letter
+
+    monkeypatch.setattr(gemini_server, "_next_variation", slow_next_variation)
+    results: list[list[str]] = []
+
+    def save() -> None:
+        results.append(gemini_server._save_images(_image_response(), str(tmp_path), "same name"))
+
+    threads = [threading.Thread(target=save) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    saved = sorted(path for paths in results for path in paths)
+    assert [Path(path).name for path in saved] == ["same-name-A.png", "same-name-B.png"]

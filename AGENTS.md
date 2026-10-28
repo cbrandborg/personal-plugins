@@ -7,7 +7,7 @@ same project guidance.
 
 ## Layout
 
-Each installable plugin lives once under `plugins/<plugin-name>/`:
+Each plugin built or vendored here lives once under `plugins/<plugin-name>/`:
 
 ```text
 plugins/<plugin-name>/
@@ -54,7 +54,23 @@ each tracked skill separately, replaces only changed skill folders, and bumps a
 plugin's patch version once only when one or more of its skills actually
 changed; it then runs offline checks and commits to `main`. Those checks are not human review of upstream instructions.
 
+## Referenced plugins
+
+Some marketplace entries point at an upstream repository pinned to a commit
+instead of vendoring it. Use this when the upstream already ships a complete
+plugin for both hosts that the skill importer would break, for example one with
+agents, shared resources, or skills that rely on `disable-model-invocation`.
+`egm` (Google's Elephant-Goldfish Model) is the current example.
+
+A referenced plugin has no `plugins/` folder and no `sources.json` entry, so the
+weekly sync never moves it. To update it, review the upstream changes, then
+change the `sha` in both registries in one commit: the Claude Code entry uses a
+`github` source and the Codex entry a `url` source. Claude Code keeps an
+installed copy while the upstream plugin version is unchanged, so reinstall it
+after moving the pin.
+
 ## Validation
 
 Run `just ci` before publishing. It validates the two marketplace registries,
 provider-manifest consistency, source declarations, and every `SKILL.md`.
+For a referenced plugin it only checks that both registries list it.
